@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { ScrollView, View, Text, TextInput, TouchableOpacity } from 'react-native';
-import { styled } from 'nativewind';
 import { TrainerPayload } from '../types/trainer.types';
 import { Field, RowGrid, GridCell } from './FormFields';
 
-const StyledScroll    = styled(ScrollView);
-const StyledView      = styled(View);
-const StyledText      = styled(Text);
-const StyledInput     = styled(TextInput);
-const StyledTouchable = styled(TouchableOpacity);
+const StyledScroll    = ScrollView;
+const StyledView      = View;
+const StyledText      = Text;
+const StyledInput     = TextInput;
+const StyledTouchable = TouchableOpacity;
 
 interface Props {
   data: Partial<TrainerPayload>;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, styled } from 'nativewind';
+import { View } from 'react-native';
 
 interface Props {
   current: number;
@@ -8,7 +8,7 @@ interface Props {
   onStepPress?: (i: number) => void;
 }
 
-const StyledView = styled(View);
+const StyledView = View;
 
 export default function StepIndicator({ current, total }: Props) {
   return (

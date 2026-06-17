@@ -6,7 +6,7 @@ import LoginPage from './src/features/common/LoginPage';
 export default function App() {
   return (
     <QueryProvider>
-      <LoginPage />
+      <LoginPage/>
     </QueryProvider>
   );
 }

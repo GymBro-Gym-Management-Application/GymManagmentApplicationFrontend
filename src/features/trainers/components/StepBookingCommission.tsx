@@ -3,15 +3,14 @@ import {
   View, Text, ScrollView, TouchableOpacity, TextInput, Switch,
   PanResponder, LayoutChangeEvent,
 } from 'react-native';
-import { styled } from 'nativewind';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { TrainerPayload } from '../types/trainer.types';
 
-const StyledView      = styled(View);
-const StyledText      = styled(Text);
-const StyledScroll    = styled(ScrollView);
-const StyledTouchable = styled(TouchableOpacity);
-const StyledInput     = styled(TextInput);
+const StyledView      = View;
+const StyledText      = Text;
+const StyledScroll    = ScrollView;
+const StyledTouchable = TouchableOpacity;
+const StyledInput     = TextInput;
 
 interface Props {
   data: Partial<TrainerPayload>;

@@ -3,7 +3,6 @@ import {
   View, Text, TouchableOpacity,
   Alert, ActivityIndicator, StatusBar, Platform,
 } from 'react-native';
-import { styled } from 'nativewind';
 import { useCreateTrainer } from '../api/trainerQueries';
 import { defaultTrainerValues } from '../hooks/useTrainerDefaults';
 import { TrainerPayload } from '../types/trainer.types';
@@ -17,9 +16,9 @@ import StepBookingCommission from '../components/StepBookingCommission';
 import StepCertDocuments from '../components/StepCertDocuments';
 import StepMiscellaneous from '../components/StepMiscellaneous';
 
-const StyledView      = styled(View);
-const StyledText      = styled(Text);
-const StyledTouchable = styled(TouchableOpacity);
+const StyledView      = View;
+const StyledText      = Text;
+const StyledTouchable = TouchableOpacity;
 
 const STEPS = [
   'Basic Info', 'Employment', 'Salary', 'Payment',

@@ -3,12 +3,11 @@ import {
   View, Text, TextInput, Switch, TouchableOpacity,
   KeyboardTypeOptions,
 } from 'react-native';
-import { styled } from 'nativewind';
 
-const StyledView      = styled(View);
-const StyledText      = styled(Text);
-const StyledInput     = styled(TextInput);
-const StyledTouchable = styled(TouchableOpacity);
+const StyledView      = View;
+const StyledText      = Text;
+const StyledInput     = TextInput;
+const StyledTouchable = TouchableOpacity;
 
 /* ─── Field ─────────────────────────────────────────────────────── */
 interface FieldProps {
@@ -18,29 +17,66 @@ interface FieldProps {
   placeholder?: string;
   keyboardType?: KeyboardTypeOptions;
   multiline?: boolean;
+  secureTextEntry?: boolean;
+  /** Optional element rendered at the trailing edge of the input (e.g. show/hide button) */
+  rightElement?: React.ReactNode;
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  autoCorrect?: boolean;
 }
 
-export function Field({ label, value, onChangeText, placeholder, keyboardType, multiline }: FieldProps) {
+export function Field({
+  label, value, onChangeText, placeholder, keyboardType,
+  multiline, secureTextEntry, rightElement, autoCapitalize, autoCorrect,
+}: FieldProps) {
   const [focused, setFocused] = useState(false);
+
+  const inputEl = (
+    <StyledInput
+      className={`flex-1 bg-input border rounded-xl px-3 text-sm text-white ${
+        focused ? 'border-lineBright bg-inputActive' : 'border-line'
+      } ${multiline ? 'h-20 pt-2.5' : 'py-2.5'}${rightElement ? ' rounded-r-none border-r-0' : ''}`}
+      value={value}
+      onChangeText={onChangeText}
+      placeholder={placeholder ?? ''}
+      placeholderTextColor="#52525B"
+      keyboardType={keyboardType ?? 'default'}
+      multiline={multiline}
+      secureTextEntry={secureTextEntry}
+      textAlignVertical={multiline ? 'top' : 'center'}
+      autoCapitalize={autoCapitalize ?? 'sentences'}
+      autoCorrect={autoCorrect ?? true}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+    />
+  );
+
   return (
     <StyledView className="mb-2">
       <StyledText className="text-xs font-semibold uppercase tracking-wide text-sub mb-1.5">
         {label}
       </StyledText>
-      <StyledInput
-        className={`bg-input border rounded-xl px-3 text-sm text-white ${
-          focused ? 'border-lineBright bg-inputActive' : 'border-line'
-        } ${multiline ? 'h-20 pt-2.5' : 'py-2.5'}`}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder ?? ''}
-        placeholderTextColor="#52525B"
-        keyboardType={keyboardType ?? 'default'}
-        multiline={multiline}
-        textAlignVertical={multiline ? 'top' : 'center'}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-      />
+      {rightElement ? (
+        <StyledView
+          className={`flex-row items-center border rounded-xl overflow-hidden ${
+            focused ? 'border-lineBright bg-inputActive' : 'border-line bg-input'
+          }`}
+        >
+          <StyledInput
+            className="flex-1 px-3 text-sm text-white py-2.5 bg-transparent"
+            value={value}
+            onChangeText={onChangeText}
+            placeholder={placeholder ?? ''}
+            placeholderTextColor="#52525B"
+            keyboardType={keyboardType ?? 'default'}
+            secureTextEntry={secureTextEntry}
+            autoCapitalize={autoCapitalize ?? 'sentences'}
+            autoCorrect={autoCorrect ?? true}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+          />
+          {rightElement}
+        </StyledView>
+      ) : inputEl}
     </StyledView>
   );
 }

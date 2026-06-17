@@ -1,12 +1,11 @@
 import React from 'react';
 import { ScrollView, View, Text } from 'react-native';
-import { styled } from 'nativewind';
 import { TrainerPayload } from '../types/trainer.types';
 import { Field, RowGrid, GridCell } from './FormFields';
 
-const StyledScroll = styled(ScrollView);
-const StyledView   = styled(View);
-const StyledText   = styled(Text);
+const StyledScroll = ScrollView;
+const StyledView   = View;
+const StyledText   = Text;
 
 interface Props {
   data: Partial<TrainerPayload>;
