@@ -1,54 +1,57 @@
 export const T = {
-  // Core surfaces — stacked layers
-  background:      '#161f1a',
-  surface:         '#1b2620',
-  surfaceElevated: '#202e27',
-  foreground:      '#f8faf9',
-  mutedFg:         '#7a9185',
-  border:          '#2a3d33',
-  input:           '#1e2d25',
+  // Core surfaces
+  background:      '#121212',
+  surface:         '#1A1A1A',
+  surfaceElevated: '#1E1E1E',
+  foreground:      '#FFFFFF',
+  mutedFg:         '#888888',
+  border:          '#2A2A2A',
+  input:           '#1E1E1E',
 
   // Accent
-  primary:         '#9ef53a',   // neon lime
-  primaryFg:       '#161f1a',
-  accent:          '#d4a53a',   // amber/gold
-  accentFg:        '#161f1a',
-  destructive:     '#d45a3a',
-  ring:            '#9ef53a',
+  primary:         '#FF6B00',   // energetic orange
+  primaryFg:       '#FFFFFF',
+  accent:          '#FFD54F',   // warm yellow
+  accentFg:        '#121212',
+  destructive:     '#FF4444',
+  ring:            '#FF6B00',
 
   // Glow / glass helpers
-  neonGlow:        'rgba(158,245,58,0.35)',
-  neonGlowFaint:   'rgba(158,245,58,0.10)',
-  neonBorder:      'rgba(158,245,58,0.35)',
-  amberGlow:       'rgba(212,165,58,0.35)',
-  glassBg:         'rgba(32,46,39,0.60)',    // surface at 60% opacity
-  glassHoverBg:    'rgba(38,55,46,0.70)',
-  glassBorder:     'rgba(255,255,255,0.06)',
+  neonGlow:        'rgba(255,107,0,0.35)',
+  neonGlowFaint:   'rgba(255,107,0,0.12)',
+  neonBorder:      'rgba(255,107,0,0.30)',
+  amberGlow:       'rgba(255,213,79,0.30)',
+  // iOS frosted glass layers
+  glassBg:         'rgba(255,255,255,0.07)',   // base frosted layer
+  glassElevated:   'rgba(255,255,255,0.11)',   // lifted card layer
+  glassHighlight:  'rgba(255,255,255,0.14)',   // top specular edge
+  glassHoverBg:    'rgba(255,255,255,0.13)',
+  glassBorder:     'rgba(255,255,255,0.10)',   // subtle specular rim
+  glassShadow:     'rgba(0,0,0,0.45)',
 
   // Shadows
   shadowCard:      '#000000',
-  shadowNeon:      '#9ef53a',
-  shadowAmber:     '#d4a53a',
+  shadowNeon:      '#FF6B00',
+  shadowAmber:     '#FFD54F',
 };
 
-// Reusable shadow presets
 export const Shadow = {
   card: {
     shadowColor:   '#000',
     shadowOffset:  { width: 0, height: 8 },
-    shadowOpacity: 0.5,
+    shadowOpacity: 0.6,
     shadowRadius:  20,
     elevation:     12,
   },
   neon: {
-    shadowColor:   '#9ef53a',
+    shadowColor:   '#FF6B00',
     shadowOffset:  { width: 0, height: 4 },
-    shadowOpacity: 0.45,
+    shadowOpacity: 0.50,
     shadowRadius:  14,
     elevation:     10,
   },
   amber: {
-    shadowColor:   '#d4a53a',
+    shadowColor:   '#FFD54F',
     shadowOffset:  { width: 0, height: 4 },
     shadowOpacity: 0.45,
     shadowRadius:  14,

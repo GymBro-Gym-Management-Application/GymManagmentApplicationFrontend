@@ -94,26 +94,28 @@ const s = StyleSheet.create({
     marginBottom: 6, letterSpacing: 0.8, textTransform: 'uppercase',
   },
   input: {
-    backgroundColor: T.input, borderWidth: 1, borderColor: T.border,
-    borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13,
     fontSize: 14, color: T.foreground,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)',
   },
   inputFocused: {
+    backgroundColor: 'rgba(255,255,255,0.11)',
     borderColor: T.primary,
     shadowColor: T.primary, shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.2, shadowRadius: 6, elevation: 3,
+    shadowOpacity: 0.25, shadowRadius: 8, elevation: 4,
   },
   multiline: { height: 90, textAlignVertical: 'top' },
 
   switchRow: {
     flexDirection: 'row', justifyContent: 'space-between',
     alignItems: 'center', paddingVertical: 12,
-    borderBottomWidth: 1, borderBottomColor: T.border,
   },
   switchLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 12 },
   iconBox: {
-    width: 28, height: 28, borderRadius: 7,
-    backgroundColor: T.input, borderWidth: 1, borderColor: T.border,
+    width: 30, height: 30, borderRadius: 9,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
     alignItems: 'center', justifyContent: 'center', marginRight: 10,
   },
   iconBoxActive: { backgroundColor: T.neonGlowFaint, borderColor: T.neonBorder },
@@ -124,8 +126,9 @@ const s = StyleSheet.create({
 
   sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 14, marginTop: 6 },
   sectionIconBox: {
-    width: 22, height: 22, borderRadius: 5,
-    backgroundColor: T.neonGlowFaint, borderWidth: 1, borderColor: T.neonBorder,
+    width: 24, height: 24, borderRadius: 7,
+    backgroundColor: T.neonGlowFaint,
+    borderWidth: 1, borderColor: T.neonBorder,
     alignItems: 'center', justifyContent: 'center', marginRight: 8,
   },
   sectionIconSym: { fontSize: 11, color: T.primary, fontWeight: '700' },
@@ -133,7 +136,7 @@ const s = StyleSheet.create({
     fontSize: 11, fontWeight: '800', color: T.primary,
     letterSpacing: 1.5, textTransform: 'uppercase', marginRight: 10,
   },
-  sectionLine: { flex: 1, height: 1, backgroundColor: T.border },
+  sectionLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.06)' },
 
   rowGrid: { flexDirection: 'row', gap: 10 },
   gridCell: { flex: 1 },

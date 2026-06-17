@@ -60,14 +60,24 @@ export default function StepIndicator({ current, total, labels, onStepPress }: P
 }
 
 const s = StyleSheet.create({
-  wrapper: { backgroundColor: T.surface, borderBottomWidth: 1, borderBottomColor: T.border },
+  wrapper: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.07)',
+  },
   tabRow: { flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 10, gap: 8 },
   chip: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
-    paddingHorizontal: 11, paddingVertical: 7,
-    borderRadius: 20, borderWidth: 1, borderColor: T.border, backgroundColor: T.input,
+    paddingHorizontal: 12, paddingVertical: 7,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
   },
-  chipActive: { backgroundColor: T.neonGlowFaint, borderColor: T.neonBorder },
+  chipActive: {
+    backgroundColor: T.neonGlowFaint,
+    borderColor: T.neonBorder,
+    shadowColor: T.primary, shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3, shadowRadius: 6, elevation: 4,
+  },
   chipDone: { opacity: 0.55, backgroundColor: 'transparent' },
   chipText: { fontSize: 12, fontWeight: '600', color: T.mutedFg },
   chipTextActive: { color: T.primary, fontWeight: '700' },

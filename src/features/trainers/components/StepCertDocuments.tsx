@@ -120,10 +120,11 @@ const s = StyleSheet.create({
   removeTxt: { fontSize: 12, color: T.destructive, fontWeight: '600' },
   addBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: T.neonBorder, borderRadius: 12,
-    padding: 14, backgroundColor: T.neonGlowFaint,
+    borderRadius: 14, padding: 14,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderWidth: 1, borderColor: T.neonBorder,
   },
-  addBtnAmber: { borderColor: `${T.accent}55`, backgroundColor: `${T.accent}10` },
+  addBtnAmber: { borderColor: `${T.accent}55`, backgroundColor: 'rgba(255,255,255,0.07)' },
   addBtnText: { color: T.primary, fontWeight: '700', fontSize: 14 },
 });
 
@@ -131,8 +132,9 @@ const cf = StyleSheet.create({
   wrap: { marginBottom: 12 },
   label: { fontSize: 11, fontWeight: '700', color: T.mutedFg, marginBottom: 5, letterSpacing: 0.8, textTransform: 'uppercase' },
   input: {
-    backgroundColor: T.input, borderWidth: 1, borderColor: T.border,
-    borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)',
+    borderRadius: 10, paddingHorizontal: 12, paddingVertical: 11,
     fontSize: 14, color: T.foreground,
   },
 });

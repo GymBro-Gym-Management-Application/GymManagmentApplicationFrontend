@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
-import { T, Shadow } from './theme';
+import { T } from './theme';
 
 interface Props {
   children: React.ReactNode;
@@ -9,45 +9,54 @@ interface Props {
   elevated?: boolean;
 }
 
-/**
- * Reusable glass card — translucent surface floating over the dark background.
- * Equivalent to the web .glass pattern: semi-opaque bg + border + shadow.
- * neonBorder=true activates the neon lime border glow variant.
- * elevated=true uses surfaceElevated bg for modals / hover states.
- */
 export default function GlassCard({ children, style, neonBorder = false, elevated = false }: Props) {
   return (
-    <View style={[
-      styles.card,
-      elevated && styles.elevated,
-      neonBorder && styles.neonBorder,
-      Shadow.card,
-      style,
-    ]}>
-      {children}
+    <View style={[styles.outer, elevated && styles.outerElevated, neonBorder && styles.outerNeon]}>
+      {/* Specular top-edge highlight — iOS "glass rim" */}
+      <View style={styles.highlight} pointerEvents="none" />
+      <View style={[styles.inner, style]}>
+        {children}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
+  outer: {
+    borderRadius: 20,
     backgroundColor: T.glassBg,
-    borderRadius: 16,
+    // soft white-tinted border (specular rim)
     borderWidth: 1,
     borderColor: T.glassBorder,
+    // deep shadow for depth
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.55,
+    shadowRadius: 24,
+    elevation: 14,
     overflow: 'hidden',
   },
-  elevated: {
-    backgroundColor: T.surfaceElevated,
+  outerElevated: {
+    backgroundColor: T.glassElevated,
   },
-  neonBorder: {
+  outerNeon: {
     borderColor: T.neonBorder,
-    // inner + outer neon glow via shadow (outer only in RN; inner simulated via bg tint)
     shadowColor: T.shadowNeon,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.55,
-    shadowRadius: 16,
-    elevation: 14,
+    shadowOpacity: 0.45,
+    shadowRadius: 18,
+    elevation: 16,
     backgroundColor: T.neonGlowFaint,
+  },
+  // top specular gradient line (simulated with a thin View)
+  highlight: {
+    position: 'absolute',
+    top: 0, left: 16, right: 16,
+    height: 1,
+    backgroundColor: T.glassHighlight,
+    borderRadius: 1,
+    zIndex: 1,
+  },
+  inner: {
+    borderRadius: 20,
   },
 });

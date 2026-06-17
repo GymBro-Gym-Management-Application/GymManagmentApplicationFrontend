@@ -76,7 +76,8 @@ const s = StyleSheet.create({
   content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40, gap: 14 },
   card: { padding: 18 },
   notes: {
-    backgroundColor: T.input, borderWidth: 1, borderColor: T.border,
-    borderRadius: 10, padding: 14, fontSize: 14, color: T.foreground, height: 110,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)',
+    borderRadius: 12, padding: 14, fontSize: 14, color: T.foreground, height: 110,
   },
 });
