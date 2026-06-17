@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Switch, StyleSheet, KeyboardTypeOptions } from 'react-native';
-import { T } from './theme';
+import {
+  View, Text, TextInput, Switch, TouchableOpacity,
+  KeyboardTypeOptions,
+} from 'react-native';
+import { styled } from 'nativewind';
 
+const StyledView      = styled(View);
+const StyledText      = styled(Text);
+const StyledInput     = styled(TextInput);
+const StyledTouchable = styled(TouchableOpacity);
+
+/* ─── Field ─────────────────────────────────────────────────────── */
 interface FieldProps {
   label: string;
   value: string;
@@ -14,130 +23,79 @@ interface FieldProps {
 export function Field({ label, value, onChangeText, placeholder, keyboardType, multiline }: FieldProps) {
   const [focused, setFocused] = useState(false);
   return (
-    <View style={s.field}>
-      {label !== '' && <Text style={s.label}>{label}</Text>}
-      <TextInput
-        style={[s.input, focused && s.inputFocused, multiline && s.multiline]}
+    <StyledView className="mb-2">
+      <StyledText className="text-xs font-semibold uppercase tracking-wide text-sub mb-1.5">
+        {label}
+      </StyledText>
+      <StyledInput
+        className={`bg-input border rounded-xl px-3 text-sm text-white ${
+          focused ? 'border-lineBright bg-inputActive' : 'border-line'
+        } ${multiline ? 'h-20 pt-2.5' : 'py-2.5'}`}
         value={value}
         onChangeText={onChangeText}
-        placeholder={placeholder ?? label}
-        placeholderTextColor={T.mutedFg}
+        placeholder={placeholder ?? ''}
+        placeholderTextColor="#52525B"
         keyboardType={keyboardType ?? 'default'}
         multiline={multiline}
         textAlignVertical={multiline ? 'top' : 'center'}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
       />
-    </View>
+    </StyledView>
   );
 }
 
-interface SwitchRowProps {
-  label: string;
-  value: boolean;
-  onValueChange: (v: boolean) => void;
-  icon?: string;
-}
-
-export function SwitchRow({ label, value, onValueChange, icon }: SwitchRowProps) {
+/* ─── SwitchRow ─────────────────────────────────────────────────── */
+export function SwitchRow({
+  label, value, onValueChange, description,
+}: {
+  label: string; value: boolean; onValueChange: (v: boolean) => void;
+  description?: string;
+}) {
   return (
-    <View style={s.switchRow}>
-      <View style={s.switchLeft}>
-        {icon && (
-          <View style={[s.iconBox, value && s.iconBoxActive]}>
-            <Text style={[s.iconSym, value && s.iconSymActive]}>{icon}</Text>
-          </View>
+    <StyledTouchable
+      className={`flex-row items-center justify-between px-3.5 py-3 mb-2 rounded-xl border ${
+        value ? 'border-brand/35 bg-brand/15' : 'border-line bg-input'
+      }`}
+      onPress={() => onValueChange(!value)}
+      activeOpacity={0.7}
+    >
+      <StyledView className="flex-1 mr-4">
+        <StyledText className={`text-sm font-medium ${value ? 'text-white' : 'text-sub'}`}>
+          {label}
+        </StyledText>
+        {description && (
+          <StyledText className="text-xs text-faint mt-0.5">{description}</StyledText>
         )}
-        <Text style={[s.switchLabel, value && s.switchLabelActive]}>{label}</Text>
-      </View>
+      </StyledView>
       <Switch
         value={value}
         onValueChange={onValueChange}
-        trackColor={{ false: T.border, true: T.neonGlow }}
-        thumbColor={value ? T.primary : T.mutedFg}
+        trackColor={{ false: '#27272A', true: '#F97316' }}
+        thumbColor="#FFFFFF"
+        ios_backgroundColor="#27272A"
       />
-    </View>
+    </StyledTouchable>
   );
 }
 
-interface SectionTitleProps {
-  children: string;
-  icon?: string;
-}
-
-export function SectionTitle({ children, icon }: SectionTitleProps) {
+/* ─── SectionTitle ──────────────────────────────────────────────── */
+export function SectionTitle({ children, icon }: { children: string; icon?: string }) {
   return (
-    <View style={s.sectionHeader}>
-      {icon && (
-        <View style={s.sectionIconBox}>
-          <Text style={s.sectionIconSym}>{icon}</Text>
-        </View>
-      )}
-      <Text style={s.sectionTitle}>{children}</Text>
-      <View style={s.sectionLine} />
-    </View>
+    <StyledView className="flex-row items-center gap-2 mb-3 mt-1">
+      {icon && <StyledText className="text-sm">{icon}</StyledText>}
+      <StyledText className="text-xs font-bold uppercase tracking-widest text-brand">
+        {children}
+      </StyledText>
+      <StyledView className="flex-1 h-px bg-lineSubtle" />
+    </StyledView>
   );
 }
 
+/* ─── RowGrid / GridCell ────────────────────────────────────────── */
 export function RowGrid({ children }: { children: React.ReactNode }) {
-  return <View style={s.rowGrid}>{children}</View>;
+  return <StyledView className="flex-row gap-2">{children}</StyledView>;
 }
-
 export function GridCell({ children }: { children: React.ReactNode }) {
-  return <View style={s.gridCell}>{children}</View>;
+  return <StyledView className="flex-1">{children}</StyledView>;
 }
-
-const s = StyleSheet.create({
-  field: { marginBottom: 14 },
-  label: {
-    fontSize: 11, fontWeight: '700', color: T.mutedFg,
-    marginBottom: 6, letterSpacing: 0.8, textTransform: 'uppercase',
-  },
-  input: {
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13,
-    fontSize: 14, color: T.foreground,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)',
-  },
-  inputFocused: {
-    backgroundColor: 'rgba(255,255,255,0.11)',
-    borderColor: T.primary,
-    shadowColor: T.primary, shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.25, shadowRadius: 8, elevation: 4,
-  },
-  multiline: { height: 90, textAlignVertical: 'top' },
-
-  switchRow: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'center', paddingVertical: 12,
-  },
-  switchLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 12 },
-  iconBox: {
-    width: 30, height: 30, borderRadius: 9,
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
-    alignItems: 'center', justifyContent: 'center', marginRight: 10,
-  },
-  iconBoxActive: { backgroundColor: T.neonGlowFaint, borderColor: T.neonBorder },
-  iconSym: { fontSize: 13, color: T.mutedFg },
-  iconSymActive: { color: T.primary },
-  switchLabel: { fontSize: 14, color: T.mutedFg, flex: 1 },
-  switchLabelActive: { color: T.foreground },
-
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 14, marginTop: 6 },
-  sectionIconBox: {
-    width: 24, height: 24, borderRadius: 7,
-    backgroundColor: T.neonGlowFaint,
-    borderWidth: 1, borderColor: T.neonBorder,
-    alignItems: 'center', justifyContent: 'center', marginRight: 8,
-  },
-  sectionIconSym: { fontSize: 11, color: T.primary, fontWeight: '700' },
-  sectionTitle: {
-    fontSize: 11, fontWeight: '800', color: T.primary,
-    letterSpacing: 1.5, textTransform: 'uppercase', marginRight: 10,
-  },
-  sectionLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.06)' },
-
-  rowGrid: { flexDirection: 'row', gap: 10 },
-  gridCell: { flex: 1 },
-});

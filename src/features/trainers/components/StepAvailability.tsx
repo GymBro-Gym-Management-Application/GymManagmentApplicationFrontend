@@ -1,23 +1,23 @@
 import React from 'react';
-import { View, Text, TextInput, Switch, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Switch, ScrollView, TouchableOpacity } from 'react-native';
+import { styled } from 'nativewind';
+import { Ionicons } from '@expo/vector-icons';
 import { TrainerPayload, Availability } from '../types/trainer.types';
-import { SectionTitle } from './FormFields';
-import GlassCard from './GlassCard';
-import { T } from './theme';
+
+const StyledView      = styled(View);
+const StyledText      = styled(Text);
+const StyledInput     = styled(TextInput);
+const StyledScroll    = styled(ScrollView);
+const StyledTouchable = styled(TouchableOpacity);
 
 interface Props {
   data: Partial<TrainerPayload>;
   onChange: (fields: Partial<TrainerPayload>) => void;
 }
 
-const DAY_ICONS: Record<string, string> = {
-  Monday:    '☀️',
-  Tuesday:   '🌤',
-  Wednesday: '⛅',
-  Thursday:  '🌦',
-  Friday:    '⚡',
-  Saturday:  '🌙',
-  Sunday:    '🪐',
+const DAY_SHORT: Record<string, string> = {
+  Monday: 'M', Tuesday: 'T', Wednesday: 'W',
+  Thursday: 'T', Friday: 'F', Saturday: 'S', Sunday: 'S',
 };
 
 export default function StepAvailability({ data, onChange }: Props) {
@@ -28,120 +28,106 @@ export default function StepAvailability({ data, onChange }: Props) {
     onChange({ availability: availability.map((a, i) => (i === index ? { ...a, ...fields } : a)) });
 
   return (
-    <ScrollView style={s.container} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
+    <StyledScroll className="flex-1 bg-bg" contentContainerStyle={{ padding: 20, paddingBottom: 48, gap: 10 }} showsVerticalScrollIndicator={false}>
 
-      <GlassCard style={s.summaryCard}>
-        <SectionTitle icon="📅">Weekly Schedule</SectionTitle>
-        <View style={s.summaryRow}>
-          <View style={s.summaryLeft}>
-            <Text style={s.summaryNum}>{activeDays}</Text>
-            <Text style={s.summaryLabel}>days active</Text>
-          </View>
-          <View style={s.dayBar}>
+      {/* Hero */}
+      <StyledView className="flex-row items-center gap-3 bg-brand/15 border border-brand/35 rounded-2xl p-4">
+        <StyledView className="w-12 h-12 rounded-full bg-panel border border-brand/35 items-center justify-center">
+          <Ionicons name="calendar-outline" size={24} color="#F97316" />
+        </StyledView>
+        <StyledView className="flex-1">
+          <StyledText className="text-base font-bold text-white">Availability</StyledText>
+          <StyledText className="text-xs text-sub mt-0.5">Set weekly working schedule</StyledText>
+        </StyledView>
+      </StyledView>
+
+      {/* Summary */}
+      <StyledView className="bg-panel border border-line rounded-2xl p-4">
+        <StyledView className="flex-row items-center justify-between">
+          <StyledView>
+            <StyledText className="text-3xl font-extrabold text-brand">
+              {activeDays}<StyledText className="text-lg font-medium text-faint">/7</StyledText>
+            </StyledText>
+            <StyledText className="text-xs text-sub mt-0.5">Days active</StyledText>
+          </StyledView>
+          <StyledView className="flex-row gap-1.5">
             {availability.map((item) => (
-              <View key={item.day} style={[s.dayBarSeg, item.isAvailable && s.dayBarSegActive]} />
+              <StyledTouchable
+                key={item.day}
+                className={`w-8 h-8 rounded-full items-center justify-center border ${
+                  item.isAvailable ? 'bg-brand border-brand' : 'bg-input border-line'
+                }`}
+                onPress={() => {
+                  const i = availability.indexOf(item);
+                  updateDay(i, { isAvailable: !item.isAvailable });
+                }}
+                activeOpacity={0.75}
+              >
+                <StyledText className={`text-xs font-bold ${item.isAvailable ? 'text-white' : 'text-faint'}`}>
+                  {DAY_SHORT[item.day]}
+                </StyledText>
+              </StyledTouchable>
             ))}
-          </View>
-        </View>
-      </GlassCard>
+          </StyledView>
+        </StyledView>
+      </StyledView>
 
+      {/* Day cards */}
       {availability.map((item, index) => (
-        <GlassCard key={item.day} style={s.dayCard} neonBorder={item.isAvailable}>
-          <View style={s.dayRow}>
-            <View style={s.dayLeft}>
-              <View style={[s.dayIconBox, item.isAvailable && s.dayIconBoxActive]}>
-                <Text style={s.dayEmoji}>{DAY_ICONS[item.day] ?? '📅'}</Text>
-              </View>
-              <View>
-                <Text style={[s.dayLabel, item.isAvailable && s.dayLabelActive]}>{item.day}</Text>
-                {item.isAvailable && item.startTime && item.endTime
-                  ? <Text style={s.dayTime}>{item.startTime} – {item.endTime}</Text>
-                  : <Text style={s.dayOff}>{item.isAvailable ? 'Set hours below' : 'Day off'}</Text>
-                }
-              </View>
-            </View>
+        <StyledView
+          key={item.day}
+          className={`rounded-2xl border p-3 ${item.isAvailable ? 'border-brand/35 bg-brand/15' : 'border-line bg-panel'}`}
+        >
+          <StyledView className="flex-row items-center gap-3">
+            <StyledView className={`w-10 h-10 rounded-lg items-center justify-center border ${item.isAvailable ? 'bg-brand/15 border-brand/35' : 'bg-inputActive border-line'}`}>
+              <StyledText className={`text-xs font-extrabold tracking-wide ${item.isAvailable ? 'text-brand' : 'text-faint'}`}>
+                {item.day.substring(0, 3).toUpperCase()}
+              </StyledText>
+            </StyledView>
+            <StyledView className="flex-1">
+              <StyledText className={`text-sm font-semibold ${item.isAvailable ? 'text-white' : 'text-sub'}`}>{item.day}</StyledText>
+              {item.isAvailable && item.startTime && item.endTime
+                ? <StyledText className="text-xs text-brand mt-0.5">{item.startTime} – {item.endTime}</StyledText>
+                : <StyledText className="text-xs text-faint mt-0.5">{item.isAvailable ? 'Set hours below' : 'Day off'}</StyledText>
+              }
+            </StyledView>
             <Switch
               value={item.isAvailable}
               onValueChange={(v) => updateDay(index, { isAvailable: v })}
-              trackColor={{ false: T.border, true: T.neonGlow }}
-              thumbColor={item.isAvailable ? T.primary : T.mutedFg}
+              trackColor={{ false: '#27272A', true: '#F97316' }}
+              thumbColor={item.isAvailable ? '#F97316' : '#A1A1AA'}
             />
-          </View>
+          </StyledView>
 
           {item.isAvailable && (
-            <View style={s.timeRow}>
-              <View style={s.timeCell}>
-                <View style={s.timeLabelRow}>
-                  <View style={s.timeDot} />
-                  <Text style={s.timeLabel}>START</Text>
-                </View>
-                <TextInput
-                  style={s.timeInput}
+            <StyledView className="flex-row items-center gap-2 mt-3">
+              <StyledView className="flex-1">
+                <StyledText className="text-xs font-bold text-faint uppercase tracking-wider mb-1">Start</StyledText>
+                <StyledInput
+                  className="bg-input border border-line rounded-xl py-2.5 text-sm text-white text-center"
                   value={item.startTime}
                   onChangeText={(v) => updateDay(index, { startTime: v })}
                   placeholder="09:00"
-                  placeholderTextColor={T.mutedFg}
+                  placeholderTextColor="#52525B"
                 />
-              </View>
-              <Text style={s.arrow}>→</Text>
-              <View style={s.timeCell}>
-                <View style={s.timeLabelRow}>
-                  <View style={[s.timeDot, s.timeDotEnd]} />
-                  <Text style={s.timeLabel}>END</Text>
-                </View>
-                <TextInput
-                  style={s.timeInput}
+              </StyledView>
+              <StyledView className="pb-1">
+                <Ionicons name="arrow-forward" size={14} color="#52525B" />
+              </StyledView>
+              <StyledView className="flex-1">
+                <StyledText className="text-xs font-bold text-faint uppercase tracking-wider mb-1">End</StyledText>
+                <StyledInput
+                  className="bg-input border border-line rounded-xl py-2.5 text-sm text-white text-center"
                   value={item.endTime}
                   onChangeText={(v) => updateDay(index, { endTime: v })}
                   placeholder="17:00"
-                  placeholderTextColor={T.mutedFg}
+                  placeholderTextColor="#52525B"
                 />
-              </View>
-            </View>
+              </StyledView>
+            </StyledView>
           )}
-        </GlassCard>
+        </StyledView>
       ))}
-    </ScrollView>
+    </StyledScroll>
   );
 }
-
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: T.background },
-  content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40, gap: 10 },
-  summaryCard: { padding: 18 },
-  summaryRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  summaryLeft: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
-  summaryNum: { fontSize: 32, fontWeight: '800', color: T.primary },
-  summaryLabel: { fontSize: 13, color: T.mutedFg },
-  dayBar: { flexDirection: 'row', gap: 4 },
-  dayBarSeg: { width: 10, height: 28, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.10)' },
-  dayBarSegActive: { backgroundColor: T.primary },
-  dayCard: { padding: 16 },
-  dayRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  dayLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  dayIconBox: {
-    width: 40, height: 40, borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  dayIconBoxActive: { backgroundColor: T.neonGlowFaint, borderColor: T.neonBorder },
-  dayEmoji: { fontSize: 18 },
-  dayLabel: { fontSize: 15, fontWeight: '700', color: T.mutedFg },
-  dayLabelActive: { color: T.foreground },
-  dayTime: { fontSize: 12, color: T.primary, marginTop: 2 },
-  dayOff: { fontSize: 11, color: T.mutedFg, marginTop: 2 },
-  timeRow: { flexDirection: 'row', alignItems: 'flex-end', marginTop: 14, gap: 8 },
-  timeCell: { flex: 1 },
-  timeLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 5 },
-  timeDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: T.primary },
-  timeDotEnd: { backgroundColor: T.destructive },
-  timeLabel: { fontSize: 10, fontWeight: '800', color: T.mutedFg, letterSpacing: 1.2 },
-  timeInput: {
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
-    borderRadius: 10, paddingVertical: 11, fontSize: 14,
-    color: T.foreground, textAlign: 'center',
-  },
-  arrow: { fontSize: 18, color: T.mutedFg, paddingBottom: 10 },
-});

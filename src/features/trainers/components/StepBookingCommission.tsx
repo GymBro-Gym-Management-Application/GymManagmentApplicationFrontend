@@ -1,346 +1,207 @@
 import React, { useRef, useCallback, useState } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet,
-  PanResponder, LayoutChangeEvent, TouchableOpacity, TextInput, Switch,
+  View, Text, ScrollView, TouchableOpacity, TextInput, Switch,
+  PanResponder, LayoutChangeEvent,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { styled } from 'nativewind';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { TrainerPayload } from '../types/trainer.types';
-import { SectionTitle } from './FormFields';
-import GlassCard from './GlassCard';
-import { T, Shadow } from './theme';
+
+const StyledView      = styled(View);
+const StyledText      = styled(Text);
+const StyledScroll    = styled(ScrollView);
+const StyledTouchable = styled(TouchableOpacity);
+const StyledInput     = styled(TextInput);
 
 interface Props {
   data: Partial<TrainerPayload>;
   onChange: (fields: Partial<TrainerPayload>) => void;
 }
 
-/* ─── Slider ─────────────────────────────────────────────────────────────── */
-function Slider({
-  label, value, onChange, icon,
-}: { label: string; value: number; onChange: (n: number) => void; icon: string }) {
-  const pct = Math.min(Math.max(value, 0), 100);
-  const trackWidth = useRef(0);
-  const [dragging, setDragging] = useState(false);
+type MCIcon = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
+
+function Block({ num, title, children }: { num: string; title: string; children: React.ReactNode }) {
+  return (
+    <StyledView className="px-5 pt-5 pb-2">
+      <StyledView className="flex-row items-center gap-2.5 mb-4">
+        <StyledView className="w-7 h-7 rounded-lg bg-brand/15 border border-brand/35 items-center justify-center">
+          <StyledText className="text-xs font-extrabold text-brand">{num}</StyledText>
+        </StyledView>
+        <StyledText className="text-base font-bold text-white">{title}</StyledText>
+      </StyledView>
+      {children}
+    </StyledView>
+  );
+}
+
+function PermissionCard({ icon, label, sub, value, onValueChange }: {
+  icon: MCIcon; label: string; sub: string;
+  value: boolean; onValueChange: (v: boolean) => void;
+}) {
+  return (
+    <StyledTouchable
+      className={`flex-row items-center gap-3 px-3.5 py-3 rounded-xl border mb-2 ${value ? 'border-brand/35 bg-brand/15' : 'border-line bg-input'}`}
+      onPress={() => onValueChange(!value)}
+      activeOpacity={0.75}
+    >
+      <StyledView className={`w-10 h-10 rounded-xl items-center justify-center ${value ? 'bg-brand/15' : 'bg-panel'}`}>
+        <MaterialCommunityIcons name={icon} size={20} color={value ? '#F97316' : '#52525B'} />
+      </StyledView>
+      <StyledView className="flex-1">
+        <StyledText className={`text-sm font-semibold ${value ? 'text-white' : 'text-sub'}`}>{label}</StyledText>
+        <StyledText className="text-xs text-faint mt-0.5">{sub}</StyledText>
+      </StyledView>
+      <StyledView className={`w-2 h-2 rounded-full ${value ? 'bg-brand' : 'bg-line'}`} />
+    </StyledTouchable>
+  );
+}
+
+function StatTile({ icon, label, value, onChange }: {
+  icon: MCIcon; label: string; value: string; onChange: (v: string) => void;
+}) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <StyledView className={`flex-1 items-center py-3.5 px-2.5 rounded-xl border gap-1 min-w-[45%] ${focused ? 'border-brand/35 bg-brand/15' : 'border-line bg-input'}`}>
+      <MaterialCommunityIcons name={icon} size={18} color={focused ? '#F97316' : '#52525B'} />
+      <StyledInput
+        className="text-2xl font-extrabold text-white text-center min-w-[50px] p-0"
+        value={value}
+        onChangeText={onChange}
+        keyboardType="numeric"
+        placeholder="—"
+        placeholderTextColor="#52525B"
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+      />
+      <StyledText className="text-xs font-semibold text-faint uppercase tracking-wide">{label}</StyledText>
+    </StyledView>
+  );
+}
+
+function Slider({ icon, label, value, onChange }: {
+  icon: MCIcon; label: string; value: number; onChange: (n: number) => void;
+}) {
+  const pct     = Math.min(Math.max(value, 0), 100);
+  const trackW  = useRef(0);
+  const [drag, setDrag] = useState(false);
+  const fillColor = pct > 70 ? '#FACC15' : pct > 40 ? '#FB923C' : '#F97316';
 
   const clamp = useCallback((x: number) => {
-    const raw = Math.round((x / trackWidth.current) * 100);
+    const raw = Math.round((x / trackW.current) * 100);
     return Math.min(Math.max(raw, 0), 100);
   }, []);
 
   const pan = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: (e) => {
-        setDragging(true);
-        if (trackWidth.current > 0) onChange(clamp(e.nativeEvent.locationX));
-      },
-      onPanResponderMove: (e) => {
-        if (trackWidth.current > 0) onChange(clamp(e.nativeEvent.locationX));
-      },
-      onPanResponderRelease: () => setDragging(false),
-      onPanResponderTerminate: () => setDragging(false),
+      onMoveShouldSetPanResponder:  () => true,
+      onPanResponderGrant:   (e) => { setDrag(true);  if (trackW.current > 0) onChange(clamp(e.nativeEvent.locationX)); },
+      onPanResponderMove:    (e) => { if (trackW.current > 0) onChange(clamp(e.nativeEvent.locationX)); },
+      onPanResponderRelease: ()  => setDrag(false),
+      onPanResponderTerminate: () => setDrag(false),
     })
   ).current;
 
-  const onLayout = (e: LayoutChangeEvent) => {
-    trackWidth.current = e.nativeEvent.layout.width;
-  };
-
-  // colour transitions: 0–40 orange, 41–70 amber, 71–100 accent
-  const fillColor = pct > 70 ? T.accent : pct > 40 ? '#FF9A3C' : T.primary;
-
   return (
-    <View style={sl.wrap}>
-      {/* Label row */}
-      <View style={sl.labelRow}>
-        <View style={sl.labelLeft}>
-          <Text style={sl.iconTxt}>{icon}</Text>
-          <Text style={sl.label}>{label}</Text>
-        </View>
-        {/* Live badge */}
-        <View style={[sl.badge, { backgroundColor: `${fillColor}22` }]}>
-          <Text style={[sl.badgeVal, { color: fillColor }]}>{pct}</Text>
-          <Text style={[sl.badgePct, { color: fillColor }]}>%</Text>
-        </View>
-      </View>
+    <StyledView className="mb-6">
+      <StyledView className="flex-row justify-between items-center mb-3">
+        <StyledView className="flex-row items-center gap-2">
+          <MaterialCommunityIcons name={icon} size={16} color="#A1A1AA" />
+          <StyledText className="text-sm font-semibold text-white">{label}</StyledText>
+        </StyledView>
+        <StyledView className="flex-row items-baseline gap-0.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: `${fillColor}22` }}>
+          <StyledText className="text-base font-extrabold" style={{ color: fillColor }}>{pct}</StyledText>
+          <StyledText className="text-xs font-bold" style={{ color: fillColor }}>%</StyledText>
+        </StyledView>
+      </StyledView>
 
-      {/* Track area */}
-      <View style={sl.trackArea} onLayout={onLayout} {...pan.panHandlers}>
-        {/* Background track */}
-        <View style={sl.trackBg} />
-        {/* Filled range with glow */}
-        <View
-          style={[
-            sl.range,
-            { width: `${pct}%` as any, backgroundColor: fillColor },
-            dragging && { shadowColor: fillColor, shadowOpacity: 0.6, shadowRadius: 8, elevation: 6 },
-          ]}
-        />
-        {/* Tick marks */}
-        {[25, 50, 75].map((tick) => (
-          <View
-            key={tick}
-            style={[
-              sl.tick,
-              { left: `${tick}%` as any },
-              pct >= tick && { backgroundColor: fillColor, opacity: 0.4 },
-            ]}
-          />
-        ))}
-        {/* Thumb */}
-        <View
-          style={[
-            sl.thumb,
-            { left: `${pct}%` as any },
-            dragging && sl.thumbActive,
-            { borderColor: fillColor, shadowColor: fillColor },
-          ]}
+      <StyledView
+        className="h-9 justify-center relative"
+        onLayout={(e: LayoutChangeEvent) => { trackW.current = e.nativeEvent.layout.width; }}
+        {...pan.panHandlers}
+      >
+        <StyledView className="absolute left-0 right-0 h-1.5 rounded-full bg-line" />
+        <StyledView className="absolute left-0 top-1/2 -mt-0.5 h-1.5 rounded-full" style={{ width: `${pct}%`, backgroundColor: fillColor }} />
+        <StyledView
+          className="absolute top-1/2 -mt-2.5 -ml-2.5 w-5 h-5 rounded-full bg-bg border-2 items-center justify-center"
+          style={{ left: `${pct}%` as any, borderColor: fillColor, transform: drag ? [{ scale: 1.25 }] : [] }}
         >
-          <View style={[sl.thumbCore, { backgroundColor: fillColor }]} />
-        </View>
-      </View>
+          <StyledView className="w-2 h-2 rounded-full" style={{ backgroundColor: fillColor }} />
+        </StyledView>
+      </StyledView>
 
-      {/* Min / Max labels */}
-      <View style={sl.minMax}>
-        <Text style={sl.minMaxTxt}>0%</Text>
-        <Text style={sl.minMaxTxt}>50%</Text>
-        <Text style={sl.minMaxTxt}>100%</Text>
-      </View>
-    </View>
+      <StyledView className="flex-row justify-between mt-1">
+        {['0%', '50%', '100%'].map((l) => (
+          <StyledText key={l} className="text-xs text-faint">{l}</StyledText>
+        ))}
+      </StyledView>
+    </StyledView>
   );
 }
 
-/* ─── Permission Toggle Card ─────────────────────────────────────────────── */
-function PermissionCard({
-  icon, label, sub, value, onValueChange,
-}: { icon: keyof typeof Ionicons.glyphMap; label: string; sub: string; value: boolean; onValueChange: (v: boolean) => void }) {
-  return (
-    <TouchableOpacity
-      activeOpacity={0.75}
-      onPress={() => onValueChange(!value)}
-      style={[pc.card, value && pc.cardActive]}
-    >
-      <View style={[pc.iconBox, value && pc.iconBoxActive]}>
-        <Ionicons name={icon} size={20} color={value ? T.primary : T.mutedFg} />
-      </View>
-      <View style={pc.text}>
-        <Text style={[pc.label, value && pc.labelActive]}>{label}</Text>
-        <Text style={pc.sub}>{sub}</Text>
-      </View>
-      <View style={[pc.dot, value && pc.dotActive]} />
-    </TouchableOpacity>
-  );
-}
-
-/* ─── Stat Input ─────────────────────────────────────────────────────────── */
-function StatInput({ label, value, onChange, icon }: {
-  label: string; value: string; onChange: (v: string) => void; icon: string;
-}) {
-  const [focused, setFocused] = useState(false);
-  return (
-    <View style={[si.wrap, focused && si.wrapFocused]}>
-      <Text style={si.icon}>{icon}</Text>
-      <TextInput
-        style={si.input}
-        value={value}
-        onChangeText={onChange}
-        keyboardType="numeric"
-        placeholderTextColor={T.mutedFg}
-        placeholder="—"
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-      />
-      <Text style={si.label}>{label}</Text>
-    </View>
-  );
-}
-
-/* ─── Main Component ─────────────────────────────────────────────────────── */
 export default function StepBookingCommission({ data, onChange }: Props) {
-  const bs = data.bookingSettings ?? {} as any;
+  const bs = data.bookingSettings    ?? {} as any;
   const cs = data.commissionSettings ?? {} as any;
-  const updateBs = (f: object) => onChange({ bookingSettings: { ...bs, ...f } });
+  const updateBs = (f: object) => onChange({ bookingSettings:    { ...bs, ...f } });
   const updateCs = (f: object) => onChange({ commissionSettings: { ...cs, ...f } });
 
   return (
-    <ScrollView style={s.container} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
+    <StyledScroll className="flex-1 bg-bg" contentContainerStyle={{ paddingBottom: 48 }} showsVerticalScrollIndicator={false}>
 
-      {/* ── Booking Permissions ── */}
-      <GlassCard style={s.card}>
-        <SectionTitle icon="⚡">Booking Permissions</SectionTitle>
-        <View style={s.permGrid}>
-          <PermissionCard icon="barbell-outline"     label="Personal Training" sub="1-on-1 sessions"     value={bs.canTakePersonalTraining ?? false}    onValueChange={(v) => updateBs({ canTakePersonalTraining: v })} />
-          <PermissionCard icon="people-outline"      label="Group Classes"     sub="Multi-client"        value={bs.canTakeGroupClasses ?? false}         onValueChange={(v) => updateBs({ canTakeGroupClasses: v })} />
-          <PermissionCard icon="laptop-outline"      label="Online Sessions"   sub="Remote coaching"     value={bs.canTakeOnlineSessions ?? false}       onValueChange={(v) => updateBs({ canTakeOnlineSessions: v })} />
-          <PermissionCard icon="star-outline"        label="Trial Sessions"    sub="Free intro"          value={bs.canTakeTrialSessions ?? false}        onValueChange={(v) => updateBs({ canTakeTrialSessions: v })} />
-        </View>
-        {/* Requires Approval as a full-width toggle */}
-        <View style={s.approvalRow}>
-          <View style={s.approvalLeft}>
-            <Ionicons name="shield-checkmark-outline" size={18} color={bs.requiresApprovalForBooking ? T.primary : T.mutedFg} />
-            <View>
-              <Text style={[s.approvalLabel, bs.requiresApprovalForBooking && s.approvalLabelActive]}>Requires Approval</Text>
-              <Text style={s.approvalSub}>All bookings need manual confirmation</Text>
-            </View>
-          </View>
+      <Block num="01" title="Booking Permissions">
+        <PermissionCard icon="weight-lifter"       label="Personal Training" sub="1-on-1 sessions"  value={bs.canTakePersonalTraining ?? false} onValueChange={(v) => updateBs({ canTakePersonalTraining: v })} />
+        <PermissionCard icon="account-group"       label="Group Classes"     sub="Multi-client"      value={bs.canTakeGroupClasses ?? false}      onValueChange={(v) => updateBs({ canTakeGroupClasses: v })} />
+        <PermissionCard icon="monitor-account"     label="Online Sessions"   sub="Remote coaching"   value={bs.canTakeOnlineSessions ?? false}    onValueChange={(v) => updateBs({ canTakeOnlineSessions: v })} />
+        <PermissionCard icon="star-circle-outline" label="Trial Sessions"    sub="Free intro"        value={bs.canTakeTrialSessions ?? false}     onValueChange={(v) => updateBs({ canTakeTrialSessions: v })} />
+
+        <StyledTouchable
+          className={`flex-row items-center gap-3 mt-2 pt-3 border-t ${bs.requiresApprovalForBooking ? 'border-lineSubtle' : 'border-lineSubtle'}`}
+          onPress={() => updateBs({ requiresApprovalForBooking: !bs.requiresApprovalForBooking })}
+          activeOpacity={0.75}
+        >
+          <MaterialCommunityIcons name="shield-check-outline" size={20} color={bs.requiresApprovalForBooking ? '#F97316' : '#52525B'} />
+          <StyledView className="flex-1">
+            <StyledText className={`text-sm font-semibold ${bs.requiresApprovalForBooking ? 'text-white' : 'text-sub'}`}>Requires Approval</StyledText>
+            <StyledText className="text-xs text-faint mt-0.5">All bookings need manual confirmation</StyledText>
+          </StyledView>
           <Switch
             value={bs.requiresApprovalForBooking ?? false}
             onValueChange={(v) => updateBs({ requiresApprovalForBooking: v })}
-            trackColor={{ false: 'rgba(255,255,255,0.10)', true: T.neonGlow }}
-            thumbColor={bs.requiresApprovalForBooking ? T.primary : '#555'}
+            trackColor={{ false: '#27272A', true: '#F97316' }}
+            thumbColor="#FFFFFF"
+            ios_backgroundColor="#27272A"
           />
-        </View>
-      </GlassCard>
+        </StyledTouchable>
+      </Block>
 
-      {/* ── Session Limits ── */}
-      <GlassCard style={s.card}>
-        <SectionTitle icon="📊">Session Limits</SectionTitle>
-        <View style={s.statGrid}>
-          <StatInput icon="👥" label="Max Clients"    value={String(bs.maxClients ?? '')}           onChange={(v) => updateBs({ maxClients: Number(v) })} />
-          <StatInput icon="☀️" label="Daily Max"      value={String(bs.maxDailySessions ?? '')}     onChange={(v) => updateBs({ maxDailySessions: Number(v) })} />
-          <StatInput icon="📅" label="Weekly Max"     value={String(bs.maxWeeklySessions ?? '')}    onChange={(v) => updateBs({ maxWeeklySessions: Number(v) })} />
-          <StatInput icon="⏱" label="Duration (min)" value={String(bs.sessionDurationMinutes ?? '')} onChange={(v) => updateBs({ sessionDurationMinutes: Number(v) })} />
-        </View>
-        <StatInput icon="⏸" label="Buffer Time (min)" value={String(bs.bufferTimeMinutes ?? '')} onChange={(v) => updateBs({ bufferTimeMinutes: Number(v) })} />
-      </GlassCard>
+      <StyledView className="h-px bg-lineSubtle mx-5" />
 
-      {/* ── Commission Eligibility ── */}
-      <GlassCard style={s.card}>
-        <SectionTitle icon="🎖">Commission Eligibility</SectionTitle>
-        <View style={s.permGrid}>
-          <PermissionCard icon="card-outline"       label="Membership"    sub="Membership sales"   value={cs.eligibleForMembershipCommission ?? false}        onValueChange={(v) => updateCs({ eligibleForMembershipCommission: v })} />
-          <PermissionCard icon="fitness-outline"    label="Personal Trng" sub="PT sessions"        value={cs.eligibleForPersonalTrainingCommission ?? false}  onValueChange={(v) => updateCs({ eligibleForPersonalTrainingCommission: v })} />
-          <PermissionCard icon="medkit-outline"     label="Supplements"   sub="Product sales"      value={cs.eligibleForSupplementCommission ?? false}        onValueChange={(v) => updateCs({ eligibleForSupplementCommission: v })} />
-        </View>
-      </GlassCard>
+      <Block num="02" title="Session Limits">
+        <StyledView className="flex-row flex-wrap gap-2.5 mb-2">
+          <StatTile icon="account-multiple-outline" label="Max Clients"    value={String(bs.maxClients ?? '')}             onChange={(v) => updateBs({ maxClients: Number(v) })} />
+          <StatTile icon="weather-sunny"            label="Daily Max"      value={String(bs.maxDailySessions ?? '')}        onChange={(v) => updateBs({ maxDailySessions: Number(v) })} />
+          <StatTile icon="calendar-week"            label="Weekly Max"     value={String(bs.maxWeeklySessions ?? '')}       onChange={(v) => updateBs({ maxWeeklySessions: Number(v) })} />
+          <StatTile icon="clock-time-four-outline"  label="Duration (min)" value={String(bs.sessionDurationMinutes ?? '')} onChange={(v) => updateBs({ sessionDurationMinutes: Number(v) })} />
+        </StyledView>
+        <StatTile icon="timer-pause-outline" label="Buffer Time (min)" value={String(bs.bufferTimeMinutes ?? '')} onChange={(v) => updateBs({ bufferTimeMinutes: Number(v) })} />
+      </Block>
 
-      {/* ── Commission Rates ── */}
-      <GlassCard style={s.card}>
-        <SectionTitle icon="📈">Commission Rates</SectionTitle>
-        <Slider icon="💳" label="Membership Commission" value={cs.membershipCommissionPercentage ?? 0} onChange={(v) => updateCs({ membershipCommissionPercentage: v })} />
-        <Slider icon="🏋️" label="Personal Training"     value={cs.ptCommissionPercentage ?? 0}         onChange={(v) => updateCs({ ptCommissionPercentage: v })} />
-        <Slider icon="💊" label="Supplements"           value={cs.supplementCommissionPercentage ?? 0} onChange={(v) => updateCs({ supplementCommissionPercentage: v })} />
-      </GlassCard>
+      <StyledView className="h-px bg-lineSubtle mx-5" />
 
-    </ScrollView>
+      <Block num="03" title="Commission Eligibility">
+        <PermissionCard icon="card-account-details-outline" label="Membership"    sub="Membership sales" value={cs.eligibleForMembershipCommission ?? false}       onValueChange={(v) => updateCs({ eligibleForMembershipCommission: v })} />
+        <PermissionCard icon="dumbbell"                     label="Personal Trng" sub="PT sessions"       value={cs.eligibleForPersonalTrainingCommission ?? false} onValueChange={(v) => updateCs({ eligibleForPersonalTrainingCommission: v })} />
+        <PermissionCard icon="pill"                         label="Supplements"   sub="Product sales"     value={cs.eligibleForSupplementCommission ?? false}       onValueChange={(v) => updateCs({ eligibleForSupplementCommission: v })} />
+      </Block>
+
+      <StyledView className="h-px bg-lineSubtle mx-5" />
+
+      <Block num="04" title="Commission Rates">
+        <Slider icon="card-account-details" label="Membership"       value={cs.membershipCommissionPercentage ?? 0} onChange={(v) => updateCs({ membershipCommissionPercentage: v })} />
+        <Slider icon="dumbbell"             label="Personal Training" value={cs.ptCommissionPercentage ?? 0}         onChange={(v) => updateCs({ ptCommissionPercentage: v })} />
+        <Slider icon="pill"                 label="Supplements"       value={cs.supplementCommissionPercentage ?? 0} onChange={(v) => updateCs({ supplementCommissionPercentage: v })} />
+      </Block>
+
+    </StyledScroll>
   );
 }
-
-/* ─── Styles ─────────────────────────────────────────────────────────────── */
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: T.background },
-  content: { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 48, gap: 14 },
-  card: { padding: 18 },
-  permGrid: { gap: 8, marginBottom: 4 },
-  statGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 10 },
-  approvalRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    marginTop: 10, paddingTop: 14,
-    borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.07)',
-    gap: 12,
-  },
-  approvalLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
-  approvalLabel: { fontSize: 14, fontWeight: '600', color: T.mutedFg },
-  approvalLabelActive: { color: T.foreground },
-  approvalSub: { fontSize: 11, color: T.mutedFg, marginTop: 1 },
-});
-
-/* Permission card */
-const pc = StyleSheet.create({
-  card: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    padding: 14, borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)',
-  },
-  cardActive: {
-    backgroundColor: 'rgba(255,107,0,0.08)',
-    borderColor: 'rgba(255,107,0,0.25)',
-    ...Shadow.neon,
-    shadowOpacity: 0.15,
-  },
-  iconBox: {
-    width: 40, height: 40, borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  iconBoxActive: { backgroundColor: 'rgba(255,107,0,0.15)' },
-  text: { flex: 1 },
-  label: { fontSize: 13, fontWeight: '600', color: T.mutedFg },
-  labelActive: { color: T.foreground },
-  sub: { fontSize: 11, color: T.mutedFg, marginTop: 1, opacity: 0.7 },
-  dot: {
-    width: 8, height: 8, borderRadius: 4,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-  },
-  dotActive: { backgroundColor: T.primary, ...Shadow.neon, shadowRadius: 6, shadowOpacity: 0.8 },
-});
-
-/* Stat input */
-const si = StyleSheet.create({
-  wrap: {
-    flex: 1, minWidth: '45%',
-    alignItems: 'center', justifyContent: 'center',
-    paddingVertical: 14, paddingHorizontal: 10,
-    borderRadius: 14, gap: 4,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)',
-  },
-  wrapFocused: {
-    backgroundColor: 'rgba(255,107,0,0.08)',
-    borderColor: 'rgba(255,107,0,0.30)',
-  },
-  icon: { fontSize: 20 },
-  input: {
-    fontSize: 26, fontWeight: '800', color: T.foreground,
-    textAlign: 'center', minWidth: 60, padding: 0,
-  },
-  label: { fontSize: 10, fontWeight: '600', color: T.mutedFg, textTransform: 'uppercase', letterSpacing: 0.8 },
-});
-
-/* Slider */
-const sl = StyleSheet.create({
-  wrap: { marginBottom: 28 },
-  labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
-  labelLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  iconTxt: { fontSize: 16 },
-  label: { fontSize: 13, fontWeight: '600', color: T.foreground },
-  badge: {
-    flexDirection: 'row', alignItems: 'baseline', gap: 1,
-    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20,
-  },
-  badgeVal: { fontSize: 16, fontWeight: '800' },
-  badgePct: { fontSize: 11, fontWeight: '700' },
-  trackArea: {
-    height: 36, justifyContent: 'center',
-    position: 'relative',
-  },
-  trackBg: {
-    position: 'absolute', left: 0, right: 0,
-    height: 6, borderRadius: 99,
-    backgroundColor: 'rgba(255,255,255,0.10)',
-  },
-  range: {
-    position: 'absolute', left: 0, top: '50%', marginTop: -3,
-    height: 6, borderRadius: 99,
-    shadowOffset: { width: 0, height: 0 }, shadowRadius: 8,
-  },
-  tick: {
-    position: 'absolute', top: '50%', marginTop: -5,
-    width: 2, height: 10, borderRadius: 1, marginLeft: -1,
-    backgroundColor: 'rgba(255,255,255,0.20)',
-  },
-  thumb: {
-    position: 'absolute', top: '50%', marginTop: -11, marginLeft: -11,
-    width: 22, height: 22, borderRadius: 11,
-    backgroundColor: T.background,
-    borderWidth: 2,
-    alignItems: 'center', justifyContent: 'center',
-    shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.5, shadowRadius: 6, elevation: 8,
-  },
-  thumbActive: { transform: [{ scale: 1.2 }] },
-  thumbCore: { width: 8, height: 8, borderRadius: 4 },
-  minMax: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
-  minMaxTxt: { fontSize: 10, color: T.mutedFg, opacity: 0.6 },
-});

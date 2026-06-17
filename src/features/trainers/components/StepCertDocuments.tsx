@@ -21,7 +21,13 @@ function CardField({ label, value, onChangeText }: { label: string; value: strin
   return (
     <View style={cf.wrap}>
       <Text style={cf.label}>{label}</Text>
-      <TextInput style={cf.input} value={value} onChangeText={onChangeText} placeholder={label} placeholderTextColor={T.mutedFg} />
+      <TextInput
+        style={cf.input}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={label}
+        placeholderTextColor={T.textFaint}
+      />
     </View>
   );
 }
@@ -106,35 +112,35 @@ export default function StepCertDocuments({ data, onChange }: Props) {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: T.background },
+  container: { flex: 1, backgroundColor: T.bg },
   content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40, gap: 12 },
   sectionCard: { padding: 18 },
-  hint: { fontSize: 12, color: T.mutedFg, marginTop: 2 },
+  hint: { fontSize: 12, color: T.textSub, marginTop: 2 },
   itemCard: { padding: 16 },
   itemHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
   itemNumRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   itemDot: { fontSize: 13 },
   itemDotAmber: { fontSize: 13 },
-  itemNum: { fontSize: 11, fontWeight: '800', color: T.primary, letterSpacing: 1.5 },
+  itemNum: { fontSize: 11, fontWeight: '800', color: T.brand, letterSpacing: 1.5 },
   removeBtn: { paddingHorizontal: 4 },
-  removeTxt: { fontSize: 12, color: T.destructive, fontWeight: '600' },
+  removeTxt: { fontSize: 12, color: T.err, fontWeight: '600' },
   addBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    borderRadius: 14, padding: 14,
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    borderWidth: 1, borderColor: T.neonBorder,
+    borderRadius: 12, padding: 14,
+    backgroundColor: T.brandDim,
+    borderWidth: 1, borderColor: T.brandBorder,
   },
-  addBtnAmber: { borderColor: `${T.accent}55`, backgroundColor: 'rgba(255,255,255,0.07)' },
-  addBtnText: { color: T.primary, fontWeight: '700', fontSize: 14 },
+  addBtnAmber: { borderColor: T.accentDim, backgroundColor: T.accentDim },
+  addBtnText: { color: T.brand, fontWeight: '700', fontSize: 14 },
 });
 
 const cf = StyleSheet.create({
-  wrap: { marginBottom: 12 },
-  label: { fontSize: 11, fontWeight: '700', color: T.mutedFg, marginBottom: 5, letterSpacing: 0.8, textTransform: 'uppercase' },
+  wrap: { marginBottom: 10 },
+  label: { fontSize: 11, fontWeight: '700', color: T.textSub, marginBottom: 5, letterSpacing: 0.8, textTransform: 'uppercase' },
   input: {
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)',
+    backgroundColor: T.bgInput,
+    borderWidth: 1, borderColor: T.line,
     borderRadius: 10, paddingHorizontal: 12, paddingVertical: 11,
-    fontSize: 14, color: T.foreground,
+    fontSize: 14, color: T.text,
   },
 });
