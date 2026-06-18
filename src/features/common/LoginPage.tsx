@@ -1,29 +1,123 @@
-import React, { useState } from 'react';
 import {
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   StatusBar,
   Platform,
   ActivityIndicator,
   KeyboardAvoidingView,
-  ScrollView,
+  Animated,
+  Easing,
+  ImageBackground,
+  StyleSheet,
+  Dimensions,
 } from 'react-native';
-import { Field, RowGrid, GridCell } from '../trainers/components/FormFields';
+import { useState, useRef, useEffect } from 'react';
 
-// ─── Logo Mark ────────────────────────────────────────────────────────────────
-function LogoMark() {
+const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
+
+// ── Responsive scale helpers ──────────────────────────────────────────────────
+// Base design is 390×844 (iPhone 14). Everything scales from here.
+const BASE_W = 390;
+const BASE_H = 844;
+const scaleW  = (px: number) => (SCREEN_WIDTH  / BASE_W) * px;
+const scaleH  = (px: number) => (SCREEN_HEIGHT / BASE_H) * px;
+const rs      = (px: number) => Math.round(scaleW(px));  // font / radius scale
+
+// Layout split — adjusts slightly on very small screens (< 700 px tall)
+const HERO_RATIO  = SCREEN_HEIGHT < 700 ? 0.42 : 0.50;
+const SHEET_RATIO = 1 - HERO_RATIO;
+const HERO_HEIGHT  = SCREEN_HEIGHT * HERO_RATIO;
+const SHEET_HEIGHT = SCREEN_HEIGHT * SHEET_RATIO;
+
+// ─── CTA Button ───────────────────────────────────────────────────────────────
+function CTAButton({
+  label,
+  onPress,
+  loading = false,
+}: {
+  label: string;
+  onPress: () => void;
+  loading?: boolean;
+}) {
+  const scale = useRef(new Animated.Value(1)).current;
+
+  const pressIn = () =>
+    Animated.spring(scale, { toValue: 0.96, useNativeDriver: true, speed: 50, bounciness: 0 }).start();
+  const pressOut = () =>
+    Animated.spring(scale, { toValue: 1,    useNativeDriver: true, speed: 30, bounciness: 4 }).start();
+
   return (
-    <View className="w-16 h-16 mb-4 items-center justify-center">
-      <View className="w-16 h-16 rounded-2xl bg-amber-400 items-center justify-center overflow-hidden">
-        <View
-          className="absolute w-full h-7 bg-black/20"
-          style={{ transform: [{ rotate: '-24deg' }, { translateY: 8 }] }}
-        />
-        <Text className="text-3xl font-black text-zinc-900 tracking-tight z-10">G</Text>
-      </View>
-      <View className="absolute bottom-0 right-0 w-[18px] h-[18px] rounded-md bg-violet-500" />
-    </View>
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <TouchableOpacity
+        style={[styles.ctaButton, loading && { backgroundColor: '#88CC00' }]}
+        onPress={onPress}
+        onPressIn={pressIn}
+        onPressOut={pressOut}
+        disabled={loading}
+        activeOpacity={1}
+      >
+        {loading
+          ? <ActivityIndicator color="#000000" />
+          : <Text style={styles.ctaText}>{label}</Text>
+        }
+      </TouchableOpacity>
+    </Animated.View>
+  );
+}
+
+// ─── Input Field ──────────────────────────────────────────────────────────────
+function InputField({
+  value,
+  onChangeText,
+  placeholder,
+  secureTextEntry,
+  keyboardType,
+  rightElement,
+}: {
+  value: string;
+  onChangeText: (v: string) => void;
+  placeholder?: string;
+  secureTextEntry?: boolean;
+  keyboardType?: 'default' | 'email-address';
+  rightElement?: React.ReactNode;
+}) {
+  const [focused, setFocused] = useState(false);
+  const borderAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(borderAnim, {
+      toValue: focused ? 1 : 0,
+      duration: 180,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: false,
+    }).start();
+  }, [focused]);
+
+  const borderColor = borderAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['#333333', '#AAFF00'],
+  });
+
+  return (
+    <Animated.View style={[styles.inputWrapper, { borderColor }]}>
+      <TextInput
+        style={styles.input}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder ?? ''}
+        placeholderTextColor="#555555"
+        keyboardType={keyboardType ?? 'default'}
+        secureTextEntry={secureTextEntry}
+        autoCapitalize="none"
+        autoCorrect={false}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        underlineColorAndroid="transparent"
+      />
+      {rightElement}
+    </Animated.View>
   );
 }
 
@@ -35,7 +129,31 @@ export default function LoginPage() {
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState('');
 
-  const handleLogin = async () => {
+  const sheetTranslateY = useRef(new Animated.Value(SHEET_HEIGHT)).current;
+  const sheetOpacity    = useRef(new Animated.Value(0)).current;
+  const heroOpacity     = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.sequence([
+      Animated.delay(300),
+      Animated.parallel([
+        Animated.timing(sheetTranslateY, {
+          toValue: 0,
+          duration: 520,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(sheetOpacity, {
+          toValue: 1,
+          duration: 420,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
+  }, []);
+
+  const handleSignIn = async () => {
     if (!email.trim() || !password.trim()) {
       setError('Please enter your email and password.');
       return;
@@ -44,7 +162,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await new Promise((r) => setTimeout(r, 1400));
-      // replace with real auth
+      // TODO: real auth call
     } catch {
       setError('Invalid credentials — please try again.');
     } finally {
@@ -53,164 +171,254 @@ export default function LoginPage() {
   };
 
   return (
-    <KeyboardAvoidingView
-      className="flex-1 bg-[#0C0C0F]"
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <StatusBar barStyle="light-content" backgroundColor="#0C0C0F" />
+    <View style={styles.root}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-      {/* ── Ambient glow blobs ── */}
-      <View
-        className="absolute -top-20 -right-16 w-64 rounded-full bg-amber-400/[0.06]"
-        pointerEvents="none"
-      />
-      <View
-        className="absolute -bottom-16 -left-20 w-56 h-56 rounded-full bg-violet-500/[0.05]"
-        pointerEvents="none"
-      />
-
-      <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        <View
-          className="flex-1 items-center justify-center px-5"
-          style={{ paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) + 8 : 8, paddingBottom: 24 }}
+      {/* ── Full-screen background image — visible behind hero AND form ── */}
+      <Animated.View style={[StyleSheet.absoluteFill, { opacity: heroOpacity }]}>
+        <ImageBackground
+          source={require('../../assets/loginImages/image02.jpg')}
+          style={{ width: '100%', height: '100%' }}
+          resizeMode="cover"
         >
+          {/* Single dark overlay over the whole screen */}
+          <View style={[StyleSheet.absoluteFill, styles.heroOverlay]} pointerEvents="none" />
+        </ImageBackground>
+      </Animated.View>
 
-          {/* ── Brand ── */}
-          <View className="items-center mb-7">
-            <LogoMark />
-            <Text className="text-2xl font-black text-zinc-100 tracking-tight">
-              GymManager
-            </Text>
-            <Text className="text-[13px] text-zinc-400 text-center mt-1.5 leading-5 max-w-[260px]">
-              Your performance hub, all in one place
-            </Text>
-          </View>
+      {/* GymManager label — pinned just above the sheet top edge, always */}
+      <Animated.View style={[styles.heroLabel, { opacity: heroOpacity }]} pointerEvents="none">
+        <Text style={styles.heroAppName}>GymManager</Text>
+        <Text style={styles.heroTagline}>Your performance hub</Text>
+      </Animated.View>
 
-          {/* ── Card ── */}
-          <View className="w-full max-w-sm rounded-[20px] border border-zinc-800 bg-[#131316] overflow-hidden shadow-2xl">
+      {/* ── Bottom sheet — no scroll, fits all content in fixed height ── */}
+      <KeyboardAvoidingView
+        style={styles.sheetContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <Animated.View
+          style={[
+            styles.sheet,
+            {
+              opacity: sheetOpacity,
+              transform: [{ translateY: sheetTranslateY }],
+            },
+          ]}
+        >
+          {/* Headline */}
+          <Text style={styles.headline}>Welcome Our GYM</Text>
 
-            {/* Amber top bar */}
-            <View className="h-[3px] bg-amber-400" />
-
-            <View className="p-6">
-              <Text className="text-[22px] font-extrabold text-zinc-100 tracking-tight mb-1 mt-1">
-                Sign in
-              </Text>
-              <Text className="text-[13px] text-zinc-400 mb-5">
-                Access your dashboard
-              </Text>
-
-              {/* Hairline */}
-              <View className="h-px bg-zinc-800 mb-5" />
-
-              {/* ── Error banner ── */}
-              {!!error && (
-                <View className="flex-row items-start gap-2 bg-red-400/[0.08] border border-red-400/30 rounded-xl px-3 py-2.5 mb-4">
-                  <View className="w-1.5 h-1.5 rounded-full bg-red-400 mt-1" />
-                  <Text className="flex-1 text-[13px] text-red-400 leading-[18px]">
-                    {error}
-                  </Text>
-                </View>
-              )}
-
-              {/* ── Email ── */}
-              <RowGrid>
-                <GridCell>
-                  <Field
-                    label="Email address"
-                    value={email}
-                    onChangeText={(v) => { setEmail(v); setError(''); }}
-                    placeholder="you@gymhq.com"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                  />
-                </GridCell>
-              </RowGrid>
-
-              {/* ── Password ── */}
-              <RowGrid>
-                <GridCell>
-                  <Field
-                    label="Password"
-                    value={password}
-                    onChangeText={(v) => { setPassword(v); setError(''); }}
-                    placeholder="••••••••••"
-                    secureTextEntry={!showPass}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    rightElement={
-                      <TouchableOpacity
-                        className="px-3.5 py-2.5"
-                        onPress={() => setShowPass((p) => !p)}
-                        activeOpacity={0.7}
-                      >
-                        <Text className="text-xs font-semibold text-violet-400">
-                          {showPass ? 'Hide' : 'Show'}
-                        </Text>
-                      </TouchableOpacity>
-                    }
-                  />
-                </GridCell>
-              </RowGrid>
-
-              {/* ── Forgot password ── */}
-              <TouchableOpacity className="self-end mb-5 mt-1" activeOpacity={0.7}>
-                <Text className="text-xs font-semibold text-amber-400">
-                  Forgot password?
-                </Text>
-              </TouchableOpacity>
-
-              {/* ── Sign In button ── */}
-              <TouchableOpacity
-                className={`rounded-xl py-[15px] items-center overflow-hidden bg-amber-400 ${loading ? 'opacity-50' : ''}`}
-                onPress={handleLogin}
-                disabled={loading}
-                activeOpacity={0.88}
-              >
-                {/* Button sheen */}
-                <View
-                  className="absolute top-0 w-[36%] h-full bg-white/10"
-                  style={{ left: '10%', transform: [{ skewX: '-18deg' }] }}
-                />
-                {loading
-                  ? <ActivityIndicator color="#0C0C0F" />
-                  : <Text className="text-[15px] font-extrabold text-zinc-900 tracking-wide">
-                      Sign In →
-                    </Text>
-                }
-              </TouchableOpacity>
-
-              {/* ── Or divider ── */}
-              {/* <View className="flex-row items-center gap-2.5 my-5">
-                <View className="flex-1 h-px bg-zinc-800" />
-                <Text className="text-xs font-medium text-zinc-600">or</Text>
-                <View className="flex-1 h-px bg-zinc-800" />
-              </View> */}
-
-              {/* ── SSO placeholder ── */}
-              {/* <TouchableOpacity
-                className="rounded-xl py-3 items-center border border-zinc-800 min-h-[44px]"
-                activeOpacity={0.8}
-              /> */}
+          {/* Sign In tab */}
+          <View style={styles.tabRow}>
+            <View style={styles.tabActive}>
+              <Text style={styles.tabTextActive}>Sign In</Text>
+              <View style={styles.tabUnderline} />
             </View>
           </View>
 
-          {/* ── Footer ── */}
-          <View className="flex-row items-center justify-center mt-6 gap-2">
-            <View className="w-1 h-1 rounded-full bg-zinc-700" />
-            <Text className="text-[11px] text-zinc-700">
-              Gym Management System · 2025
-            </Text>
-            <View className="w-1 h-1 rounded-full bg-zinc-700" />
+          {/* Hairline */}
+          <View style={styles.hairline} />
+
+          {/* Error banner */}
+          {!!error && (
+            <View style={styles.errorBanner}>
+              <View style={styles.errorDot} />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+
+          {/* Inputs */}
+          <View style={styles.inputsStack}>
+            <InputField
+              value={email}
+              onChangeText={(v) => { setEmail(v); setError(''); }}
+              placeholder="Username or email..."
+              keyboardType="email-address"
+            />
+            <InputField
+              value={password}
+              onChangeText={(v) => { setPassword(v); setError(''); }}
+              placeholder="Password..."
+              secureTextEntry={!showPass}
+              rightElement={
+                <TouchableOpacity
+                  style={styles.showHideBtn}
+                  onPress={() => setShowPass((p) => !p)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.showHideText}>{showPass ? 'Hide' : 'Show'}</Text>
+                </TouchableOpacity>
+              }
+            />
           </View>
 
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          {/* CTA */}
+          <View style={styles.ctaWrapper}>
+            <CTAButton label="Sign In" onPress={handleSignIn} loading={loading} />
+          </View>
+        </Animated.View>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: '#0D0D0D',
+  },
+
+  heroOverlay: {
+    backgroundColor: 'rgba(0,0,0,0.48)',
+  },
+
+  // GymManager label — always sits just above the sheet's top edge
+  heroLabel: {
+    position: 'absolute',
+    top: HERO_HEIGHT - scaleH(64),
+    left: scaleW(20),
+  },
+  heroAppName: {
+    fontSize: rs(28),
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.5,
+  },
+  heroTagline: {
+    fontSize: rs(13),
+    fontWeight: '400',
+    color: '#AAAAAA',
+    marginTop: scaleH(3),
+  },
+
+  // Sheet anchored to bottom, height = remaining screen after hero
+  sheetContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: SHEET_HEIGHT,
+  },
+  sheet: {
+    flex: 1,
+    backgroundColor: 'rgba(26,26,26,0.72)',
+    borderTopLeftRadius: rs(28),
+    borderTopRightRadius: rs(28),
+    paddingHorizontal: scaleW(20),
+    paddingTop: scaleH(24),
+    paddingBottom: scaleH(28),
+    justifyContent: 'center',
+  },
+
+  headline: {
+    fontSize: rs(22),
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.4,
+    textAlign: 'center',
+    marginBottom: scaleH(12),
+  },
+
+  tabRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: scaleH(14),
+  },
+  tabActive: {
+    alignItems: 'center',
+    paddingBottom: scaleH(4),
+  },
+  tabTextActive: {
+    fontSize: rs(15),
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  tabUnderline: {
+    marginTop: scaleH(4),
+    width: '100%',
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: '#AAFF00',
+  },
+
+  hairline: {
+    height: 1,
+    backgroundColor: '#2A2A2A',
+    marginBottom: scaleH(14),
+  },
+
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: 'rgba(239,68,68,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(239,68,68,0.28)',
+    borderRadius: rs(12),
+    paddingHorizontal: scaleW(12),
+    paddingVertical: scaleH(8),
+    marginBottom: scaleH(10),
+    gap: scaleW(8),
+  },
+  errorDot: {
+    width: rs(6),
+    height: rs(6),
+    borderRadius: rs(3),
+    backgroundColor: '#EF4444',
+    marginTop: scaleH(4),
+  },
+  errorText: {
+    flex: 1,
+    fontSize: rs(13),
+    color: '#F87171',
+    lineHeight: rs(18),
+  },
+
+  inputsStack: {
+    gap: scaleH(10),
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: scaleH(50),
+    borderRadius: scaleH(50),
+    borderWidth: 1,
+    borderColor: '#333333',
+    backgroundColor: '#222222',
+    overflow: 'hidden',
+  },
+  input: {
+    flex: 1,
+    paddingHorizontal: scaleW(20),
+    fontSize: rs(14),
+    color: '#FFFFFF',
+    height: '100%',
+  },
+  showHideBtn: {
+    paddingHorizontal: scaleW(16),
+    paddingVertical: scaleH(10),
+  },
+  showHideText: {
+    fontSize: rs(11),
+    fontWeight: '600',
+    color: '#AAFF00',
+  },
+
+  ctaWrapper: {
+    marginTop: scaleH(18),
+  },
+  ctaButton: {
+    height: scaleH(52),
+    borderRadius: scaleH(52),
+    backgroundColor: '#AAFF00',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ctaText: {
+    fontSize: rs(16),
+    fontWeight: '700',
+    color: '#000000',
+    letterSpacing: 0.3,
+  },
+});

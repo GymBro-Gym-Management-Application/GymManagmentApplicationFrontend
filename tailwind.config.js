@@ -6,25 +6,34 @@ module.exports = {
     './src/**/*.{js,jsx,ts,tsx}',
   ],
   presets: [require('nativewind/preset')],
-  theme: {
+ theme: {
     extend: {
       colors: {
-        bg:           '#09090B',
-        panel:        '#111113',
-        input:        '#18181B',
-        inputActive:  '#1F1F23',
-        line:         '#27272A',
-        lineSubtle:   '#1C1C1F',
-        lineBright:   '#3F3F46',
-        brand:        '#F97316',
-        brandText:    '#FFFFFF',
-        sub:          '#A1A1AA',
-        faint:        '#52525B',
-        accent:       '#FACC15',
-        ok:           '#22C55E',
-        err:          '#EF4444',
+        // Surfaces
+        bg:      '#0D0D0D', // app background
+        surface: '#1A1A1A', // card / surface
+        elevated:'#222222', // elevated surface
+
+        // Input-specific (used directly by FormFields.tsx)
+        input:       '#1A1A1A', // default input background
+        inputActive: '#1A1A1A', // focused input background (bg stays flat; border signals focus)
+
+        // Borders / dividers
+        line:       '#333333', // default border
+        lineBright: '#AAFF00', // focused border (accent)
+        lineSubtle: '#222222', // hairline / divider
+
+        // Text
+        sub:   '#AAAAAA', // secondary text / labels
+        faint: '#777777', // helper / tertiary text
+
+        // Accent
+        brand:     '#AAFF00', // CTA / accent green
+        brandDark: '#88CC00', // pressed/hover state for accent
       },
     },
   },
   plugins: [],
 };
+
+

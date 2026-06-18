@@ -38,7 +38,7 @@ export function Field({
       value={value}
       onChangeText={onChangeText}
       placeholder={placeholder ?? ''}
-      placeholderTextColor="#52525B"
+      placeholderTextColor="#666666"
       keyboardType={keyboardType ?? 'default'}
       multiline={multiline}
       secureTextEntry={secureTextEntry}
@@ -66,7 +66,7 @@ export function Field({
             value={value}
             onChangeText={onChangeText}
             placeholder={placeholder ?? ''}
-            placeholderTextColor="#52525B"
+            placeholderTextColor="#666666"
             keyboardType={keyboardType ?? 'default'}
             secureTextEntry={secureTextEntry}
             autoCapitalize={autoCapitalize ?? 'sentences'}
@@ -107,7 +107,7 @@ export function SwitchRow({
       <Switch
         value={value}
         onValueChange={onValueChange}
-        trackColor={{ false: '#27272A', true: '#F97316' }}
+        trackColor={{ false: '#27272A', true: '#AAFF00' }}
         thumbColor="#FFFFFF"
         ios_backgroundColor="#27272A"
       />
