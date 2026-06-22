@@ -1,12 +1,14 @@
 import React from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import QueryProvider from './src/app/providers/QueryProvider';
-import AddTrainerPage from './src/features/trainers/pages/AddTrainerPage';
-import LoginPage from './src/features/common/LoginPage';
+import AdminDashboard from './src/features/dashboard/pages/AdminDashboard';
 
 export default function App() {
   return (
-    <QueryProvider>
-      <LoginPage/>
-    </QueryProvider>
+    <SafeAreaProvider>
+      <QueryProvider>
+        <AdminDashboard />
+      </QueryProvider>
+    </SafeAreaProvider>
   );
 }

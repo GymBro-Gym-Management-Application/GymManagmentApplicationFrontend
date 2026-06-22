@@ -14,6 +14,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { useState, useRef, useEffect } from 'react';
+import { useLogin } from '../api/authQueries';
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -126,8 +127,10 @@ export default function LoginPage() {
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
-  const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState('');
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
+
+  const { mutate, isPending } = useLogin();
 
   const sheetTranslateY = useRef(new Animated.Value(SHEET_HEIGHT)).current;
   const sheetOpacity    = useRef(new Animated.Value(0)).current;
@@ -153,21 +156,50 @@ export default function LoginPage() {
     ]).start();
   }, []);
 
-  const handleSignIn = async () => {
+  const handleSignIn = () => {
     if (!email.trim() || !password.trim()) {
       setError('Please enter your email and password.');
       return;
     }
     setError('');
-    setLoading(true);
-    try {
-      await new Promise((r) => setTimeout(r, 1400));
-      // TODO: real auth call
-    } catch {
-      setError('Invalid credentials — please try again.');
-    } finally {
-      setLoading(false);
-    }
+    setFieldErrors({});
+    mutate(
+      { email: email.trim(), password },
+      {
+        onSuccess: (res) => {
+          if (res.success) {
+            // TODO: store token (res.data) and navigate to app
+          } else {
+            // Route each error string to the right field by keyword matching
+            const errs = res.errors ?? [];
+            const fe: { email?: string; password?: string } = {};
+            const unmatched: string[] = [];
+
+            errs.forEach((msg) => {
+              const lower = msg.toLowerCase();
+              if (lower.includes('email')) {
+                fe.email = msg;
+              } else if (lower.includes('password')) {
+                fe.password = msg;
+              } else {
+                unmatched.push(msg);
+              }
+            });
+
+            setFieldErrors(fe);
+            // Any errors that didn't match a specific field go to the general banner
+            if (unmatched.length > 0) {
+              setError(unmatched.join('\n'));
+            } else if (Object.keys(fe).length === 0) {
+              setError(res.message ?? 'Login failed. Please try again.');
+            }
+          }
+        },
+        onError: () => {
+          setError('Could not connect to server. Please try again.');
+        },
+      }
+    );
   };
 
   return (
@@ -177,7 +209,7 @@ export default function LoginPage() {
       {/* ── Full-screen background image — visible behind hero AND form ── */}
       <Animated.View style={[StyleSheet.absoluteFill, { opacity: heroOpacity }]}>
         <ImageBackground
-          source={require('../../assets/loginImages/image02.jpg')}
+          source={require('../../../assets/loginImages/image02.jpg')}
           style={{ width: '100%', height: '100%' }}
           resizeMode="cover"
         >
@@ -230,32 +262,42 @@ export default function LoginPage() {
 
           {/* Inputs */}
           <View style={styles.inputsStack}>
-            <InputField
-              value={email}
-              onChangeText={(v) => { setEmail(v); setError(''); }}
-              placeholder="Username or email..."
-              keyboardType="email-address"
-            />
-            <InputField
-              value={password}
-              onChangeText={(v) => { setPassword(v); setError(''); }}
-              placeholder="Password..."
-              secureTextEntry={!showPass}
-              rightElement={
-                <TouchableOpacity
-                  style={styles.showHideBtn}
-                  onPress={() => setShowPass((p) => !p)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.showHideText}>{showPass ? 'Hide' : 'Show'}</Text>
-                </TouchableOpacity>
-              }
-            />
+            <View>
+              <InputField
+                value={email}
+                onChangeText={(v) => { setEmail(v); setError(''); setFieldErrors((p) => ({ ...p, email: undefined })); }}
+                placeholder="Username or email..."
+                keyboardType="email-address"
+              />
+              {!!fieldErrors.email && (
+                <Text style={styles.fieldError}>{fieldErrors.email}</Text>
+              )}
+            </View>
+            <View>
+              <InputField
+                value={password}
+                onChangeText={(v) => { setPassword(v); setError(''); setFieldErrors((p) => ({ ...p, password: undefined })); }}
+                placeholder="Password..."
+                secureTextEntry={!showPass}
+                rightElement={
+                  <TouchableOpacity
+                    style={styles.showHideBtn}
+                    onPress={() => setShowPass((p) => !p)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.showHideText}>{showPass ? 'Hide' : 'Show'}</Text>
+                  </TouchableOpacity>
+                }
+              />
+              {!!fieldErrors.password && (
+                <Text style={styles.fieldError}>{fieldErrors.password}</Text>
+              )}
+            </View>
           </View>
 
           {/* CTA */}
           <View style={styles.ctaWrapper}>
-            <CTAButton label="Sign In" onPress={handleSignIn} loading={loading} />
+            <CTAButton label="Sign In" onPress={handleSignIn} loading={isPending} />
           </View>
         </Animated.View>
       </KeyboardAvoidingView>
@@ -377,8 +419,7 @@ const styles = StyleSheet.create({
 
   inputsStack: {
     gap: scaleH(10),
-  },
-  inputWrapper: {
+  },  inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     height: scaleH(50),
@@ -420,5 +461,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#000000',
     letterSpacing: 0.3,
+  },
+
+  fieldError: {
+    fontSize: rs(12),
+    color: '#F87171',
+    marginTop: scaleH(4),
+    marginLeft: scaleW(16),
   },
 });

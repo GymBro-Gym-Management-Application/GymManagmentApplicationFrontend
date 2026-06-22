@@ -1,6 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle } from 'react-native';
-import { T } from './theme';
+import { View, ViewStyle } from 'react-native';
 
 interface Props {
   children: React.ReactNode;
@@ -12,12 +11,16 @@ interface Props {
 
 export default function GlassCard({ children, style, neonBorder, elevated, variant = 'default' }: Props) {
   const v = neonBorder ? 'brand' : elevated ? 'raised' : variant;
-  return <View style={[s.base, s[v], style]}>{children}</View>;
-}
 
-const s = StyleSheet.create({
-  base: { borderRadius: 14, borderWidth: 1, overflow: 'hidden' },
-  default: { backgroundColor: T.bgPanel, borderColor: T.line },
-  raised:  { backgroundColor: T.bgInput, borderColor: T.line },
-  brand:   { backgroundColor: T.brandDim, borderColor: T.brandBorder },
-});
+  const cls = {
+    default: 'bg-surface border-line',
+    raised:  'bg-elevated border-line',
+    brand:   'bg-[rgba(170,255,0,0.10)] border-[rgba(170,255,0,0.25)]',
+  }[v];
+
+  return (
+    <View className={`rounded-2xl border overflow-hidden ${cls}`} style={style}>
+      {children}
+    </View>
+  );
+}

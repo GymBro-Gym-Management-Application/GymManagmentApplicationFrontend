@@ -1,54 +1,52 @@
 import React, { useState } from 'react';
-import { ScrollView, View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { ScrollView, View, Text, TouchableOpacity } from 'react-native';
 import { TrainerPayload } from '../types/trainer.types';
 import { Field, RowGrid, GridCell } from './FormFields';
-
-const StyledScroll    = ScrollView;
-const StyledView      = View;
-const StyledText      = Text;
-const StyledInput     = TextInput;
-const StyledTouchable = TouchableOpacity;
+import { DateField } from './DatePicker';
+import { BasicInfoErrors } from '../pages/AddTrainerPage';
+import { T } from './theme';
+import BranchDropdown from '../../branches/components/BranchDropdown';
+import { Branch } from '../../branches/types/branch.types';
 
 interface Props {
   data: Partial<TrainerPayload>;
   onChange: (fields: Partial<TrainerPayload>) => void;
+  errors?: BasicInfoErrors;
+  selectedBranchId?: number | null;
+  onBranchSelect?: (branch: Branch) => void;
+  branchError?: string;
 }
 
-function Block({ num, title, children }: { num: string; title: string; children: React.ReactNode }) {
-  return (
-    <StyledView className="px-5 pt-5 pb-2">
-      <StyledView className="flex-row items-center gap-2.5 mb-4">
-        <StyledView className="w-7 h-7 rounded-lg bg-brand/15 border border-brand/35 items-center justify-center">
-          <StyledText className="text-xs font-extrabold text-brand">{num}</StyledText>
-        </StyledView>
-        <StyledText className="text-base font-bold text-white">{title}</StyledText>
-      </StyledView>
-      {children}
-    </StyledView>
-  );
+function Section({ title }: { title: string }) {
+  return <Text className="text-[13px] font-semibold text-sub mb-3 mt-1">{title}</Text>;
 }
 
-function GenderPills({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function GenderPills({ value, onChange, error }: { value: string; onChange: (v: string) => void; error?: string }) {
   return (
-    <StyledView className="mb-2">
-      <StyledText className="text-xs font-semibold uppercase tracking-wide text-sub mb-1.5">Gender</StyledText>
-      <StyledView className="flex-row gap-2">
+    <View className="mb-4">
+      <Text className="text-[13px] font-normal text-sub mb-[7px]">Gender</Text>
+      <View className="flex-row gap-[10px]">
         {['Male', 'Female', 'Other'].map((o) => (
-          <StyledTouchable
+          <TouchableOpacity
             key={o}
-            className={`flex-1 py-2.5 items-center rounded-xl border ${
-              value === o ? 'border-brand/35 bg-brand/15' : 'border-line bg-input'
+            className={`flex-1 py-[14px] items-center rounded-xl border ${
+              value === o
+                ? 'border-[rgba(170,255,0,0.25)] bg-[rgba(170,255,0,0.10)]'
+                : error
+                ? 'border-[#EF4444] bg-input'
+                : 'border-line bg-input'
             }`}
             onPress={() => onChange(o)}
             activeOpacity={0.75}
           >
-            <StyledText className={`text-sm font-semibold ${value === o ? 'text-brand' : 'text-sub'}`}>
+            <Text className={`text-[14px] font-medium ${value === o ? 'text-brand font-semibold' : 'text-sub'}`}>
               {o}
-            </StyledText>
-          </StyledTouchable>
+            </Text>
+          </TouchableOpacity>
         ))}
-      </StyledView>
-    </StyledView>
+      </View>
+      {error && <Text className="text-[12px] mt-1" style={{ color: '#EF4444' }}>{error}</Text>}
+    </View>
   );
 }
 
@@ -62,66 +60,84 @@ function TagInput({ label, value, onChange, placeholder }: {
     setTxt('');
   };
   return (
-    <StyledView className="mb-2">
-      <StyledText className="text-xs font-semibold uppercase tracking-wide text-sub mb-1.5">{label}</StyledText>
-      <StyledView className="flex-row flex-wrap gap-1.5 mb-1.5">
-        {value.map((v) => (
-          <StyledTouchable
-            key={v}
-            className="flex-row items-center gap-1.5 bg-brand/15 border border-brand/35 rounded-full px-2.5 py-1"
-            onPress={() => onChange(value.filter((x) => x !== v))}
-          >
-            <StyledText className="text-xs font-semibold text-brand">{v}</StyledText>
-            <StyledText className="text-brand text-sm leading-4">×</StyledText>
-          </StyledTouchable>
-        ))}
-      </StyledView>
-      <StyledView className="flex-row items-center gap-2">
-        <StyledInput
-          className="flex-1 bg-input border border-line rounded-xl px-3 py-2.5 text-sm text-white"
-          value={txt}
-          onChangeText={setTxt}
-          onSubmitEditing={add}
-          placeholder={placeholder ?? 'Add…'}
-          placeholderTextColor="#52525B"
-          returnKeyType="done"
-        />
-        <StyledTouchable className="px-3.5 py-2.5 rounded-xl bg-brand" onPress={add}>
-          <StyledText className="text-sm font-bold text-white">Add</StyledText>
-        </StyledTouchable>
-      </StyledView>
-    </StyledView>
+    <View className="mb-1">
+      {value.length > 0 && (
+        <View className="flex-row flex-wrap gap-[6px] mb-2">
+          {value.map((v) => (
+            <TouchableOpacity
+              key={v}
+              className="flex-row items-center gap-[5px] bg-[rgba(170,255,0,0.10)] border border-[rgba(170,255,0,0.25)] rounded-full px-[10px] py-[5px]"
+              onPress={() => onChange(value.filter((x) => x !== v))}
+            >
+              <Text className="text-[12px] font-semibold text-brand">{v}</Text>
+              <Text className="text-[14px] text-brand" style={{ lineHeight: 17 }}>×</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+      <View className="flex-row items-end gap-[10px]">
+        <View className="flex-1">
+          <Field
+            label={label}
+            value={txt}
+            onChangeText={setTxt}
+            placeholder={placeholder ?? 'Type and press add…'}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+        </View>
+        <TouchableOpacity
+          className="px-[18px] py-[14px] rounded-xl bg-brand mb-4"
+          onPress={add}
+          activeOpacity={0.8}
+        >
+          <Text className="text-[14px] font-bold text-black">Add</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
 
-export default function StepBasicInfo({ data, onChange }: Props) {
+export default function StepBasicInfo({ data, onChange, errors = {}, selectedBranchId, onBranchSelect, branchError }: Props) {
   return (
-    <StyledScroll className="flex-1 bg-bg" contentContainerStyle={{ paddingBottom: 48 }} showsVerticalScrollIndicator={false}>
-      <Block num="01" title="Identity">
-        <Field label="Display Name"  value={data.displayName ?? ''} onChangeText={(v) => onChange({ displayName: v })} />
-        <Field label="Trainer Code"  value={data.trainerCode ?? ''} onChangeText={(v) => onChange({ trainerCode: v })} />
-        <GenderPills value={data.gender ?? ''} onChange={(v) => onChange({ gender: v })} />
-        <RowGrid>
-          <GridCell><Field label="Date of Birth" value={data.dateOfBirth ?? ''} onChangeText={(v) => onChange({ dateOfBirth: v })} placeholder="YYYY-MM-DD" /></GridCell>
-          <GridCell><Field label="Exp. Years" value={String(data.experienceYears ?? '')} onChangeText={(v) => onChange({ experienceYears: Number(v) })} keyboardType="numeric" /></GridCell>
-        </RowGrid>
-      </Block>
+    <ScrollView className="flex-1 bg-bg" contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+      <Text className="text-[30px] font-extrabold text-white mb-[6px]" style={{ letterSpacing: -0.5 }}>Basic Info</Text>
+      <Text className="text-[14px] font-normal text-sub mb-7" style={{ lineHeight: 20 }}>Personal details and contact information</Text>
 
-      <StyledView className="h-px bg-lineSubtle mx-5" />
+      {/* Branch — first field */}
+      {onBranchSelect && (
+        <View className="mb-6">
+          <BranchDropdown
+            value={selectedBranchId ?? null}
+            onChange={onBranchSelect}
+            error={branchError}
+            label="Branch"
+          />
+        </View>
+      )}
 
-      <Block num="02" title="Contact">
-        <Field label="Email"   value={data.email ?? ''}   onChangeText={(v) => onChange({ email: v })}   keyboardType="email-address" />
-        <Field label="Phone"   value={data.phone ?? ''}   onChangeText={(v) => onChange({ phone: v })}   keyboardType="phone-pad" />
-        <Field label="Address" value={data.address ?? ''} onChangeText={(v) => onChange({ address: v })} />
-      </Block>
+      <Section title="Identity" />
+      <Field label="Display Name" value={data.displayName ?? ''} onChangeText={(v) => onChange({ displayName: v })} error={errors.displayName} />
+      <Field label="Trainer Code" value={data.trainerCode ?? ''} onChangeText={(v) => onChange({ trainerCode: v })} error={errors.trainerCode} />
+      <GenderPills value={data.gender ?? ''} onChange={(v) => onChange({ gender: v })} error={errors.gender} />
+      <RowGrid>
+        <GridCell>
+          <DateField label="Date of Birth" value={data.dateOfBirth ?? ''} onChange={(v) => onChange({ dateOfBirth: v })} maxYear={new Date().getFullYear()} error={errors.dateOfBirth} />
+        </GridCell>
+        <GridCell>
+          <Field label="Exp. Years" value={String(data.experienceYears ?? '')} onChangeText={(v) => onChange({ experienceYears: Number(v) })} keyboardType="numeric" error={errors.experienceYears} />
+        </GridCell>
+      </RowGrid>
 
-      <StyledView className="h-px bg-lineSubtle mx-5" />
+      <Section title="Contact" />
+      <Field label="Email"   value={data.email ?? ''}   onChangeText={(v) => onChange({ email: v })}   keyboardType="email-address" autoCapitalize="none" error={errors.email} />
+      <Field label="Phone"   value={data.phone ?? ''}   onChangeText={(v) => onChange({ phone: v })}   keyboardType="phone-pad" error={errors.phone} />
+      <Field label="Address" value={data.address ?? ''} onChangeText={(v) => onChange({ address: v })} error={errors.address} />
 
-      <Block num="03" title="Profile">
-        <Field label="Bio" value={data.bio ?? ''} onChangeText={(v) => onChange({ bio: v })} multiline />
-        <TagInput label="Specializations" value={data.specializations ?? []} onChange={(arr) => onChange({ specializations: arr })} placeholder="e.g. Yoga, CrossFit…" />
-        <TagInput label="Languages Known"  value={data.languagesKnown ?? []}  onChange={(arr) => onChange({ languagesKnown: arr })}  placeholder="e.g. English, Hindi…" />
-      </Block>
-    </StyledScroll>
+      <Section title="Profile" />
+      <Field label="Bio" value={data.bio ?? ''} onChangeText={(v) => onChange({ bio: v })} multiline error={errors.bio} />
+      <TagInput label="Specializations" value={data.specializations ?? []} onChange={(arr) => onChange({ specializations: arr })} placeholder="e.g. Yoga, CrossFit…" />
+      <TagInput label="Languages Known"  value={data.languagesKnown ?? []}  onChange={(arr) => onChange({ languagesKnown: arr })}  placeholder="e.g. English, Hindi…" />
+    </ScrollView>
   );
 }

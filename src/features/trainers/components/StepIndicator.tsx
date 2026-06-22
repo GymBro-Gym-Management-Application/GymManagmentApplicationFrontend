@@ -1,5 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
+import { T } from './theme';
 
 interface Props {
   current: number;
@@ -8,21 +9,21 @@ interface Props {
   onStepPress?: (i: number) => void;
 }
 
-const StyledView = View;
-
 export default function StepIndicator({ current, total }: Props) {
   return (
-    <StyledView className="flex-row px-5 py-2.5 bg-panel border-b border-line gap-1">
+    <View className="flex-row px-5 py-[10px] bg-surface border-b border-[#222222] gap-1">
       {Array.from({ length: total }).map((_, i) => (
-        <StyledView
+        <View
           key={i}
-          className={`flex-1 h-0.5 rounded-sm ${
-            i < current  ? 'bg-brand' :
-            i === current ? 'bg-brand opacity-50' :
-            'bg-line'
-          }`}
+          className="flex-1 h-[2px] rounded-sm"
+          style={{
+            backgroundColor:
+              i < current    ? T.brand :
+              i === current  ? T.brand : T.line,
+            opacity: i === current ? 0.5 : 1,
+          }}
         />
       ))}
-    </StyledView>
+    </View>
   );
 }

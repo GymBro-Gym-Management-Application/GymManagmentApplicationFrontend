@@ -3,13 +3,9 @@ import {
   View, Text, TextInput, Switch, TouchableOpacity,
   KeyboardTypeOptions,
 } from 'react-native';
+import { T } from './theme';
 
-const StyledView      = View;
-const StyledText      = Text;
-const StyledInput     = TextInput;
-const StyledTouchable = TouchableOpacity;
-
-/* ─── Field ─────────────────────────────────────────────────────── */
+/* ─── Field ──────────────────────────────────────────────────────── */
 interface FieldProps {
   label: string;
   value: string;
@@ -18,55 +14,37 @@ interface FieldProps {
   keyboardType?: KeyboardTypeOptions;
   multiline?: boolean;
   secureTextEntry?: boolean;
-  /** Optional element rendered at the trailing edge of the input (e.g. show/hide button) */
   rightElement?: React.ReactNode;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   autoCorrect?: boolean;
+  error?: string;
 }
 
 export function Field({
   label, value, onChangeText, placeholder, keyboardType,
-  multiline, secureTextEntry, rightElement, autoCapitalize, autoCorrect,
+  multiline, secureTextEntry, rightElement, autoCapitalize, autoCorrect, error,
 }: FieldProps) {
   const [focused, setFocused] = useState(false);
-
-  const inputEl = (
-    <StyledInput
-      className={`flex-1 bg-input border rounded-xl px-3 text-sm text-white ${
-        focused ? 'border-lineBright bg-inputActive' : 'border-line'
-      } ${multiline ? 'h-20 pt-2.5' : 'py-2.5'}${rightElement ? ' rounded-r-none border-r-0' : ''}`}
-      value={value}
-      onChangeText={onChangeText}
-      placeholder={placeholder ?? ''}
-      placeholderTextColor="#666666"
-      keyboardType={keyboardType ?? 'default'}
-      multiline={multiline}
-      secureTextEntry={secureTextEntry}
-      textAlignVertical={multiline ? 'top' : 'center'}
-      autoCapitalize={autoCapitalize ?? 'sentences'}
-      autoCorrect={autoCorrect ?? true}
-      onFocus={() => setFocused(true)}
-      onBlur={() => setFocused(false)}
-    />
-  );
+  const hasError = !!error;
 
   return (
-    <StyledView className="mb-2">
-      <StyledText className="text-xs font-semibold uppercase tracking-wide text-sub mb-1.5">
-        {label}
-      </StyledText>
+    <View className="mb-4">
+      <Text className="text-[13px] font-normal text-sub mb-[7px]">{label}</Text>
       {rightElement ? (
-        <StyledView
-          className={`flex-row items-center border rounded-xl overflow-hidden ${
-            focused ? 'border-lineBright bg-inputActive' : 'border-line bg-input'
-          }`}
+        <View
+          className="flex-row items-center bg-input border rounded-xl overflow-hidden"
+          style={
+            hasError    ? { borderColor: '#EF4444' } :
+            focused     ? { borderColor: '#444444', backgroundColor: '#222222' } :
+            undefined
+          }
         >
-          <StyledInput
-            className="flex-1 px-3 text-sm text-white py-2.5 bg-transparent"
+          <TextInput
+            className="flex-1 px-4 py-[14px] text-[15px] text-white"
             value={value}
             onChangeText={onChangeText}
             placeholder={placeholder ?? ''}
-            placeholderTextColor="#666666"
+            placeholderTextColor={T.textFaint}
             keyboardType={keyboardType ?? 'default'}
             secureTextEntry={secureTextEntry}
             autoCapitalize={autoCapitalize ?? 'sentences'}
@@ -75,13 +53,40 @@ export function Field({
             onBlur={() => setFocused(false)}
           />
           {rightElement}
-        </StyledView>
-      ) : inputEl}
-    </StyledView>
+        </View>
+      ) : (
+        <TextInput
+          className={[
+            'bg-input border rounded-xl px-4 text-[15px] text-white',
+            multiline ? 'h-[90px] pt-3' : 'py-[14px]',
+          ].join(' ')}
+          style={
+            hasError    ? { borderColor: '#EF4444' } :
+            focused     ? { borderColor: '#444444', backgroundColor: '#222222' } :
+            { borderColor: T.line }
+          }
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder ?? ''}
+          placeholderTextColor={T.textFaint}
+          keyboardType={keyboardType ?? 'default'}
+          multiline={multiline}
+          secureTextEntry={secureTextEntry}
+          textAlignVertical={multiline ? 'top' : 'center'}
+          autoCapitalize={autoCapitalize ?? 'sentences'}
+          autoCorrect={autoCorrect ?? true}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+        />
+      )}
+      {hasError && (
+        <Text className="text-[12px] mt-1" style={{ color: '#EF4444' }}>{error}</Text>
+      )}
+    </View>
   );
 }
 
-/* ─── SwitchRow ─────────────────────────────────────────────────── */
+/* ─── SwitchRow ──────────────────────────────────────────────────── */
 export function SwitchRow({
   label, value, onValueChange, description,
 }: {
@@ -89,49 +94,36 @@ export function SwitchRow({
   description?: string;
 }) {
   return (
-    <StyledTouchable
-      className={`flex-row items-center justify-between px-3.5 py-3 mb-2 rounded-xl border ${
-        value ? 'border-brand/35 bg-brand/15' : 'border-line bg-input'
+    <TouchableOpacity
+      className={`flex-row items-center justify-between px-4 py-[14px] mb-4 rounded-xl border ${
+        value ? 'border-[rgba(170,255,0,0.25)] bg-[rgba(170,255,0,0.10)]' : 'border-line bg-input'
       }`}
       onPress={() => onValueChange(!value)}
       activeOpacity={0.7}
     >
-      <StyledView className="flex-1 mr-4">
-        <StyledText className={`text-sm font-medium ${value ? 'text-white' : 'text-sub'}`}>
+      <View className="flex-1 mr-3">
+        <Text className={`text-[15px] font-normal ${value ? 'text-white' : 'text-sub'}`}>
           {label}
-        </StyledText>
+        </Text>
         {description && (
-          <StyledText className="text-xs text-faint mt-0.5">{description}</StyledText>
+          <Text className="text-[12px] text-faint mt-[3px]">{description}</Text>
         )}
-      </StyledView>
+      </View>
       <Switch
         value={value}
         onValueChange={onValueChange}
-        trackColor={{ false: '#27272A', true: '#AAFF00' }}
-        thumbColor="#FFFFFF"
-        ios_backgroundColor="#27272A"
+        trackColor={{ false: '#2A2A2A', true: T.brand }}
+        thumbColor={value ? T.onBrand : '#FFFFFF'}
+        ios_backgroundColor="#2A2A2A"
       />
-    </StyledTouchable>
+    </TouchableOpacity>
   );
 }
 
-/* ─── SectionTitle ──────────────────────────────────────────────── */
-export function SectionTitle({ children, icon }: { children: string; icon?: string }) {
-  return (
-    <StyledView className="flex-row items-center gap-2 mb-3 mt-1">
-      {icon && <StyledText className="text-sm">{icon}</StyledText>}
-      <StyledText className="text-xs font-bold uppercase tracking-widest text-brand">
-        {children}
-      </StyledText>
-      <StyledView className="flex-1 h-px bg-lineSubtle" />
-    </StyledView>
-  );
-}
-
-/* ─── RowGrid / GridCell ────────────────────────────────────────── */
+/* ─── RowGrid / GridCell ─────────────────────────────────────────── */
 export function RowGrid({ children }: { children: React.ReactNode }) {
-  return <StyledView className="flex-row gap-2">{children}</StyledView>;
+  return <View className="flex-row gap-3">{children}</View>;
 }
 export function GridCell({ children }: { children: React.ReactNode }) {
-  return <StyledView className="flex-1">{children}</StyledView>;
+  return <View className="flex-1">{children}</View>;
 }

@@ -1,8 +1,8 @@
 import React from 'react';
-import { ScrollView, View, Text, TextInput, StyleSheet } from 'react-native';
+import { ScrollView, View, Text } from 'react-native';
 import { TrainerPayload } from '../types/trainer.types';
 import { Field, SwitchRow, RowGrid, GridCell } from './FormFields';
-import { T, R } from './theme';
+import { T } from './theme';
 
 interface Props {
   data: Partial<TrainerPayload>;
@@ -11,10 +11,12 @@ interface Props {
 
 function Block({ num, title, children }: { num: string; title: string; children: React.ReactNode }) {
   return (
-    <View style={b.wrap}>
-      <View style={b.header}>
-        <View style={b.numBadge}><Text style={b.num}>{num}</Text></View>
-        <Text style={b.title}>{title}</Text>
+    <View className="px-5 pt-[22px] pb-[10px]">
+      <View className="flex-row items-center gap-[10px] mb-4">
+        <View className="w-7 h-7 rounded-lg bg-[rgba(170,255,0,0.10)] border border-[rgba(170,255,0,0.25)] items-center justify-center">
+          <Text className="text-[11px] font-extrabold text-brand" style={{ letterSpacing: 0.5 }}>{num}</Text>
+        </View>
+        <Text className="text-[16px] font-bold text-white">{title}</Text>
       </View>
       {children}
     </View>
@@ -30,7 +32,7 @@ export default function StepMiscellaneous({ data, onChange }: Props) {
   const updateAtt = (f: object) => onChange({ attendanceSettings: { ...att, ...f } });
 
   return (
-    <ScrollView style={s.root} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
+    <ScrollView className="flex-1 bg-bg" contentContainerStyle={{ paddingBottom: 48 }} showsVerticalScrollIndicator={false}>
 
       <Block num="01" title="Emergency Contact">
         <RowGrid>
@@ -41,7 +43,7 @@ export default function StepMiscellaneous({ data, onChange }: Props) {
         <Field label="Address" value={ec.address ?? ''} onChangeText={(v) => updateEc({ address: v })} />
       </Block>
 
-      <View style={s.divider} />
+      <View className="h-px bg-[#1A1A1A] mx-5" />
 
       <Block num="02" title="Social Links">
         <RowGrid>
@@ -54,7 +56,7 @@ export default function StepMiscellaneous({ data, onChange }: Props) {
         </RowGrid>
       </Block>
 
-      <View style={s.divider} />
+      <View className="h-px bg-[#1A1A1A] mx-5" />
 
       <Block num="03" title="Attendance">
         <SwitchRow label="Attendance Required" value={att.attendanceRequired ?? false} onValueChange={(v) => updateAtt({ attendanceRequired: v })} />
@@ -66,41 +68,18 @@ export default function StepMiscellaneous({ data, onChange }: Props) {
         <Field label="Weekly Off Days"   value={(att.weeklyOffDays ?? []).join(', ')}  onChangeText={(v) => updateAtt({ weeklyOffDays: v.split(',').map((x: string) => x.trim()).filter(Boolean) })} placeholder="e.g. Saturday, Sunday" />
       </Block>
 
-      <View style={s.divider} />
+      <View className="h-px bg-[#1A1A1A] mx-5" />
 
       <Block num="04" title="Notes">
-        <TextInput
-          style={s.notes}
+        <Field
+          label="Notes"
           value={data.notes ?? ''}
           onChangeText={(v) => onChange({ notes: v })}
           placeholder="Additional notes about the trainer..."
-          placeholderTextColor={T.textFaint}
           multiline
-          textAlignVertical="top"
         />
       </Block>
 
     </ScrollView>
   );
 }
-
-const s = StyleSheet.create({
-  root:    { flex: 1, backgroundColor: T.bg },
-  content: { paddingBottom: 48 },
-  divider: { height: 1, backgroundColor: T.lineSubtle, marginHorizontal: 20 },
-  notes: {
-    backgroundColor: T.bgInput,
-    borderWidth: 1, borderColor: T.line,
-    borderRadius: R.md, paddingHorizontal: 12, paddingVertical: 11,
-    fontSize: 14, color: T.text,
-    height: 110, marginTop: 4,
-    textAlignVertical: 'top',
-  },
-});
-const b = StyleSheet.create({
-  wrap:     { paddingHorizontal: 20, paddingTop: 22, paddingBottom: 10 },
-  header:   { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16 },
-  numBadge: { width: 28, height: 28, borderRadius: 8, backgroundColor: T.brandDim, borderWidth: 1, borderColor: T.brandBorder, alignItems: 'center', justifyContent: 'center' },
-  num:      { fontSize: 11, fontWeight: '800', color: T.brand, letterSpacing: 0.5 },
-  title:    { fontSize: 16, fontWeight: '700', color: T.text },
-});
