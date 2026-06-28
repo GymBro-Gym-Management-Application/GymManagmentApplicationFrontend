@@ -120,7 +120,7 @@ export default function AdminDashboard({ adminName = 'Admin' }: AdminDashboardPr
           paddingTop: 16,
           paddingBottom: 20,
           borderBottomWidth: 1,
-          borderBottomColor: 'rgba(255,255,255,0.08)',
+          borderBottomColor: 'rgba(34,197,94,0.15)',
           marginBottom: 24,
         }}>
           <DashboardHeader
@@ -217,10 +217,10 @@ export default function AdminDashboard({ adminName = 'Admin' }: AdminDashboardPr
         bottom: Platform.OS === 'ios' ? 32 : 20,
         left: 24,
         right: 24,
-        backgroundColor: 'rgba(20,20,20,0.82)',
+        backgroundColor: 'rgba(10,30,15,0.88)',
         borderRadius: 36,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.12)',
+        borderColor: 'rgba(34,197,94,0.25)',
         flexDirection: 'row',
         alignItems: 'center',
         paddingVertical: 10,

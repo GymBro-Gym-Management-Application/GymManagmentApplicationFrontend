@@ -16,12 +16,12 @@ function formatRevenue(value: number): string {
 }
 
 const glass = {
-  backgroundColor: 'rgba(255,255,255,0.05)',
+  backgroundColor: 'rgba(34,197,94,0.07)',
   borderWidth: 1,
-  borderColor: 'rgba(255,255,255,0.10)',
-  shadowColor: '#000',
+  borderColor: 'rgba(34,197,94,0.18)',
+  shadowColor: '#22c55e',
   shadowOffset: { width: 0, height: 6 },
-  shadowOpacity: 0.35,
+  shadowOpacity: 0.20,
   shadowRadius: 14,
   elevation: 8,
 };
@@ -64,7 +64,7 @@ export default function BranchCard({ branch, onPress }: BranchCardProps) {
       </View>
 
       {/* Divider */}
-      <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.07)', marginBottom: 12 }} />
+      <View style={{ height: 1, backgroundColor: 'rgba(34,197,94,0.12)', marginBottom: 12 }} />
 
       {/* Members */}
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
@@ -79,7 +79,7 @@ export default function BranchCard({ branch, onPress }: BranchCardProps) {
       <Text style={{ color: T.textSub, fontSize: 10, marginBottom: 12 }}>revenue this month</Text>
 
       {/* Occupancy bar */}
-      <View style={{ height: 5, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 3, overflow: 'hidden' }}>
+      <View style={{ height: 5, backgroundColor: 'rgba(34,197,94,0.12)', borderRadius: 3, overflow: 'hidden' }}>
         <View style={{
           height: '100%', borderRadius: 3,
           width: `${branch.occupancyPct}%`,

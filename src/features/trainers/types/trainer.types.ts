@@ -151,3 +151,36 @@ export interface ApiResponse<T> {
   data: T | null;
   errors: string[] | null;
 }
+
+// ─── Paginated list wrapper ───────────────────────────────────────
+export interface PaginatedData<T> {
+  items: T[];
+  pageNumber: number;
+  pageSize: number;
+  totalRecords: number;
+  totalPages: number;
+}
+
+// ─── Trainer summary (list item from GET /api/trainers) ──────────
+export interface TrainerSummary {
+  id: number;
+  userId: number;
+  branchId: number;
+  trainerCode: string;
+  displayName: string;
+  profileImage: string | null;
+  bio: string | null;
+  experienceYears: number | null;
+  gender: string | null;
+  dateOfBirth: string | null;
+  phone: string | null;
+  email: string;
+  address: string | null;
+  languagesKnown: string[] | null;
+  specializations: string[] | null;
+  employment: Employment | null;
+  rating: number | null;
+  isAvailable: boolean;
+  notes: string | null;
+  createdAt: string;
+}

@@ -5,4 +5,7 @@ export const queryKeys = {
   branches: {
     all: ['branches'] as const,
   },
+  tenants: {
+    all: ['tenants'] as const,
+  },
 };
