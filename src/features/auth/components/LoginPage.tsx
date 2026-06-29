@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
   // GymManager label — always sits just above the sheet's top edge
   heroLabel: {
     position: 'absolute',
-    top: HERO_HEIGHT - scaleH(130),
+    top: HERO_HEIGHT - scaleH(150),
     left: scaleW(16),
     alignItems: 'flex-start',
   },
