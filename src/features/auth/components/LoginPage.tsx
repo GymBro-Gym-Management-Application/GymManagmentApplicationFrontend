@@ -10,6 +10,7 @@ import {
   Animated,
   Easing,
   ImageBackground,
+  Image,
   StyleSheet,
   Dimensions,
 } from 'react-native';
@@ -218,10 +219,13 @@ export default function LoginPage({ onLoginSuccess }: { onLoginSuccess: () => vo
         </ImageBackground>
       </Animated.View>
 
-      {/* GymManager label — pinned just above the sheet top edge, always */}
+      {/* Logo — pinned to left side of hero */}
       <Animated.View style={[styles.heroLabel, { opacity: heroOpacity }]} pointerEvents="none">
-        <Text style={styles.heroAppName}>GymManager</Text>
-        <Text style={styles.heroTagline}>Your performance hub</Text>
+        <Image
+          source={require('../../../assets/common/logo01.png')}
+          style={styles.heroLogo}
+          resizeMode="contain"
+        />
       </Animated.View>
 
       {/* ── Bottom sheet — no scroll, fits all content in fixed height ── */}
@@ -319,21 +323,17 @@ const styles = StyleSheet.create({
   // GymManager label — always sits just above the sheet's top edge
   heroLabel: {
     position: 'absolute',
-    top: HERO_HEIGHT - scaleH(64),
-    left: scaleW(20),
+    top: HERO_HEIGHT - scaleH(150),
+    left: scaleW(16),
+    alignItems: 'flex-start',
   },
-  heroAppName: {
-    fontSize: rs(28),
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: -0.5,
+  heroLogo: {
+    width: SCREEN_WIDTH * 0.90,
+    height: scaleH(190),
+   
+  
   },
-  heroTagline: {
-    fontSize: rs(13),
-    fontWeight: '400',
-    color: '#AAAAAA',
-    marginTop: scaleH(3),
-  },
+
 
   // Sheet anchored to bottom, height = remaining screen after hero
   sheetContainer: {

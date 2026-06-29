@@ -25,9 +25,9 @@ export default function StatsStrip({ items }: StatsStripProps) {
     <View
       style={{
         flexDirection: 'row',
-        backgroundColor: 'rgba(255,255,255,0.04)',
+        backgroundColor: 'rgba(34,197,94,0.07)',
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.09)',
+        borderColor: 'rgba(34,197,94,0.18)',
         borderRadius: 20,
         paddingVertical: 16,
         paddingHorizontal: 8,
@@ -40,7 +40,7 @@ export default function StatsStrip({ items }: StatsStripProps) {
             flex: 1,
             alignItems: 'center',
             borderRightWidth: i < items.length - 1 ? 1 : 0,
-            borderRightColor: 'rgba(255,255,255,0.07)',
+            borderRightColor: 'rgba(34,197,94,0.15)',
             gap: 6,
           }}
         >

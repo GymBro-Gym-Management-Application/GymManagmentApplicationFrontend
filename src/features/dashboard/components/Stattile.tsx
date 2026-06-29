@@ -14,12 +14,12 @@ interface StatTileProps {
 }
 
 const glass = {
-  backgroundColor: 'rgba(255,255,255,0.05)',
+  backgroundColor: 'rgba(34,197,94,0.07)',
   borderWidth: 1,
-  borderColor: 'rgba(255,255,255,0.10)',
-  shadowColor: '#000',
+  borderColor: 'rgba(34,197,94,0.18)',
+  shadowColor: '#22c55e',
   shadowOffset: { width: 0, height: 6 },
-  shadowOpacity: 0.35,
+  shadowOpacity: 0.20,
   shadowRadius: 14,
   elevation: 8,
 };
@@ -30,8 +30,8 @@ export default function StatTile({ icon, label, value, deltaLabel, deltaPositive
       {/* Icon badge */}
       <View style={{
         width: 38, height: 38, borderRadius: 19,
-        backgroundColor: 'rgba(255,255,255,0.07)',
-        borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+        backgroundColor: 'rgba(34,197,94,0.10)',
+        borderWidth: 1, borderColor: 'rgba(34,197,94,0.22)',
         alignItems: 'center', justifyContent: 'center',
         marginBottom: 14,
       }}>

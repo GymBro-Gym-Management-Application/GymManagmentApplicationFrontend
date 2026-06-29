@@ -1,7 +1,9 @@
 export const ENDPOINTS = {
-  TRAINERS: '/trainers',
-  TENANTS:  '/tenantsots',
-  BRANCHES: '/branches',
-  LOGIN:    '/auth/login',
-  ADD_BRANCH: '/branches',
+  TRAINERS:    '/trainers',
+  ADD_TRAINER: '/trainers',
+  TENANTS:     '/tenants',
+  ADD_TENANT:  '/tenants',
+  BRANCHES:    '/branches',
+  ADD_BRANCH:  '/branches',
+  LOGIN:       '/auth/login',
 };

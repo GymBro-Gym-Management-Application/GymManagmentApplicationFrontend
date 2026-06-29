@@ -1,226 +1,241 @@
 import React, { useState, useRef } from 'react';
 import {
   View, Text, ScrollView, Pressable,
-  StatusBar, Platform, Animated,
+  StatusBar, Platform, Animated, ImageBackground,
+  useWindowDimensions,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { T } from '../../trainers/components/theme';
-import AddTrainerPage from '../../trainers/pages/AddTrainerPage';
-import AddBranchPage from '../../branches/pages/AddBranchPage';
+import AddTrainerPage   from '../../trainers/pages/AddTrainerPage';
+import ViewTrainersPage from '../../trainers/pages/ViewTrainersPage';
+import AddBranchPage    from '../../branches/pages/AddBranchPage';
 import ViewBranchesPage from '../../branches/pages/ViewBranchesPage';
-import StatsStrip from '../../common/StatsStrip';
+import AddTenantPage    from '../../tenants/pages/AddTenantPage';
+import ViewTenantsPage  from '../../tenants/pages/ViewTenantsPage';
+
+// ─── Images ───────────────────────────────────────────────────────
+const IMG_COACH1  = require('../../../assets/dashboard/coach-1.jpg');
+const IMG_COACH2  = require('../../../assets/dashboard/coach-2.jpg');
+const IMG_WORKOUT = require('../../../assets/dashboard/workout-1.jpg');
+const IMG_HERO    = require('../../../assets/dashboard/hero-athlete.jpg');
 
 type FeatherIconName = React.ComponentProps<typeof Feather>['name'];
 
-// ─── Data ─────────────────────────────────────────────────────────
+// ─── Color palette ────────────────────────────────────────────────
+const ACCENT      = '#AAFF00';
+const ACCENT_DARK = '#88CC00';
+const ACCENT_FG   = '#000000';
+const BG          = '#0D0D0D';
+const SURFACE     = '#1A1A1A';
+const SURFACE_EL  = '#222222';
+const TEXT        = '#FFFFFF';
+const TEXT_SUB    = '#AAAAAA';
+const ICON_STROKE = 'rgba(255,255,255,0.80)';
+
+// ─── Responsive breakpoints ───────────────────────────────────────
+// phone  : w < 480
+// tablet : 480 ≤ w < 768
+// desktop: w ≥ 768
+function useLayout() {
+  const { width, height } = useWindowDimensions();
+  const isTablet  = width >= 480;
+  const isDesktop = width >= 768;
+
+  // Fluid horizontal padding: 16 → 24 → 40
+  const hPad = isDesktop ? 40 : isTablet ? 24 : 16;
+
+  // Number of card columns: 1 → 2
+  const cols = isTablet ? 2 : 1;
+
+  // Card width accounting for columns and gap
+  const cardGap = isTablet ? 14 : 0;
+  const cardW   = cols === 2
+    ? (width - hPad * 2 - cardGap) / 2
+    : width - hPad * 2;
+
+  // Scale factor for font sizes
+  const scale = isDesktop ? 1.1 : isTablet ? 1.05 : 1;
+
+  return { width, height, isTablet, isDesktop, hPad, cols, cardW, cardGap, scale };
+}
+
+// ─── Module data ──────────────────────────────────────────────────
 interface ModuleItem {
-  key: string;
-  label: string;
-  sublabel: string;
-  description: string;
-  icon: FeatherIconName;
-  accent: string;
-  accentDim: string;
-  accentBorder: string;
-  stat: string;
-  statLabel: string;
-  tag: string;
+  key: string; category: string; label: string;
+  sublabel: string; icon: FeatherIconName;
+  stat: string; level: string; image: any;
 }
 
 const MODULES: ModuleItem[] = [
-  {
-    key: 'branch',
-    label: 'Branch',
-    sublabel: 'Add new location',
-    description: 'Register gym branch, set capacity & hours',
-    icon: 'map-pin',
-    accent: '#AAFF00',
-    accentDim: 'rgba(170,255,0,0.10)',
-    accentBorder: 'rgba(170,255,0,0.22)',
-    stat: '5',
-    statLabel: 'locations',
-    tag: 'Locations',
-  },
-  {
-    key: 'trainer',
-    label: 'Trainer',
-    sublabel: 'Onboard staff',
-    description: 'Assign specializations & branch',
-    icon: 'award',
-    accent: '#22D3EE',
-    accentDim: 'rgba(34,211,238,0.10)',
-    accentBorder: 'rgba(34,211,238,0.22)',
-    stat: '18',
-    statLabel: 'trainers',
-    tag: 'Staff',
-  },
-  {
-    key: 'tenant',
-    label: 'Tenant',
-    sublabel: 'New organisation',
-    description: 'Create tenant with plan & admin access',
-    icon: 'briefcase',
-    accent: '#A78BFA',
-    accentDim: 'rgba(167,139,250,0.10)',
-    accentBorder: 'rgba(167,139,250,0.22)',
-    stat: '3',
-    statLabel: 'tenants',
-    tag: 'Tenants',
-  },
-  {
-    key: 'client',
-    label: 'Client',
-    sublabel: 'Enrol member',
-    description: 'Assign plan, branch & trainer',
-    icon: 'user-plus',
-    accent: '#FACC15',
-    accentDim: 'rgba(250,204,21,0.10)',
-    accentBorder: 'rgba(250,204,21,0.22)',
-    stat: '1,284',
-    statLabel: 'members',
-    tag: 'Members',
-  },
+  { key: 'branch',  category: 'Locations',     label: 'Branches', sublabel: 'Add new location',   icon: 'map-pin',   stat: '5',     level: 'Manager',      image: IMG_WORKOUT },
+  { key: 'trainer', category: 'Staff',          label: 'Trainers', sublabel: 'Onboard coaches',    icon: 'award',     stat: '18',    level: 'Professional', image: IMG_COACH1  },
+  { key: 'tenant',  category: 'Organisations',  label: 'Tenants',  sublabel: 'New organisation',   icon: 'briefcase', stat: '3',     level: 'Enterprise',   image: IMG_COACH2  },
+  { key: 'client',  category: 'Members',        label: 'Clients',  sublabel: 'Enrol members',      icon: 'user-plus', stat: '1,284', level: 'Beginner',     image: IMG_HERO    },
 ];
 
-const SUMMARY_ITEMS = [
-  { icon: 'map-pin' as FeatherIconName,   label: 'Branches', value: '5',     accent: '#AAFF00' },
-  { icon: 'award' as FeatherIconName,     label: 'Trainers', value: '18',    accent: '#22D3EE' },
-  { icon: 'briefcase' as FeatherIconName, label: 'Tenants',  value: '3',     accent: '#A78BFA' },
-  { icon: 'users' as FeatherIconName,     label: 'Members',  value: '1,284', accent: '#FACC15' },
+const CATEGORIES = ['All', 'Locations', 'Staff', 'Organisations', 'Members'];
+
+const ACTIVITY = [
+  { icon: 'map-pin'   as FeatherIconName, title: 'Downtown branch added',   sub: 'Mumbai · 2h ago'             },
+  { icon: 'award'     as FeatherIconName, title: 'Ravi K. onboarded',       sub: 'Trainer · Westside · 5h ago' },
+  { icon: 'user-plus' as FeatherIconName, title: '23 new members enrolled', sub: 'Today · all branches'        },
 ];
 
-// ─── Animated card (full-width row) ──────────────────────────────
+// ─── Module card ──────────────────────────────────────────────────
 function ModuleCard({
-  mod,
-  onPressAdd,
-  onPressView,
+  mod, cardW, scale, onPressAdd, onPressView,
 }: {
-  mod: ModuleItem;
-  onPressAdd: () => void;
-  onPressView: () => void;
+  mod: ModuleItem; cardW: number; scale: number;
+  onPressAdd: () => void; onPressView: () => void;
 }) {
-  const scale = useRef(new Animated.Value(1)).current;
+  const anim = useRef(new Animated.Value(1)).current;
+  const onIn  = () => Animated.spring(anim, { toValue: 0.975, useNativeDriver: true, speed: 60, bounciness: 0 }).start();
+  const onOut = () => Animated.spring(anim, { toValue: 1,     useNativeDriver: true, speed: 40, bounciness: 4 }).start();
 
-  const onPressIn = () =>
-    Animated.spring(scale, { toValue: 0.97, useNativeDriver: true, speed: 50, bounciness: 0 }).start();
-  const onPressOut = () =>
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 30, bounciness: 5 }).start();
+  // Scale icon circle proportionally
+  const circleSize = Math.round(cardW * 0.18);
+  const iconSize   = Math.round(circleSize * 0.44);
+  const titleSize  = Math.min(Math.round(cardW * 0.085), 36) * scale;
 
   return (
-    <Animated.View style={{ transform: [{ scale }], marginBottom: 14 }}>
+    <Animated.View style={{ transform: [{ scale: anim }], width: cardW }}>
       <Pressable
-        onPress={onPressView}
-        onPressIn={onPressIn}
-        onPressOut={onPressOut}
-        accessibilityRole="button"
-        accessibilityLabel={mod.label}
+        onPress={onPressView} onPressIn={onIn} onPressOut={onOut}
+        accessibilityRole="button" accessibilityLabel={mod.label}
         style={{
-          borderRadius: 24,
-          // overflow removed — it blocks nested Pressable events on Android
-          backgroundColor: 'rgba(255,255,255,0.04)',
-          borderWidth: 1,
-          borderColor: 'rgba(255,255,255,0.10)',
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 10 },
-          shadowOpacity: 0.50,
-          shadowRadius: 22,
-          elevation: 12,
+          borderRadius: 24, overflow: 'hidden',
+          borderWidth: 1, borderColor: 'rgba(170,255,0,0.20)',
+          shadowColor: ACCENT, shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.18, shadowRadius: 20, elevation: 10,
         }}
       >
-        {/* Accent top strip — rounded top corners manually since overflow is off */}
-        <View style={{
-          height: 3,
-          backgroundColor: mod.accent,
-          opacity: 0.9,
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
-        }} />
+        <ImageBackground
+          source={mod.image}
+          style={{ width: '100%' }}
+          imageStyle={{ opacity: 0.45 }}
+          resizeMode="cover"
+        >
+          <View style={{ backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 24 }}>
 
-        <View style={{ padding: 20 }}>
-          {/* Top row — icon badge + tag + arrow */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <View style={{
-              width: 52, height: 52, borderRadius: 16,
-              backgroundColor: mod.accentDim,
-              borderWidth: 1, borderColor: mod.accentBorder,
-              alignItems: 'center', justifyContent: 'center',
-            }}>
-              <Feather name={mod.icon} size={24} color={mod.accent} />
+            {/* Top content */}
+            <View style={{ padding: cardW * 0.055, paddingBottom: 0 }}>
+
+              {/* Category pill + arrow */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: cardW * 0.045 }}>
+                <View style={{
+                  backgroundColor: 'rgba(0,0,0,0.55)',
+                  borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5,
+                  borderWidth: 1, borderColor: 'rgba(170,255,0,0.40)',
+                }}>
+                  <Text style={{ color: ACCENT, fontSize: 10 * scale, fontWeight: '700', letterSpacing: 0.9, textTransform: 'uppercase' }}>
+                    {mod.category}
+                  </Text>
+                </View>
+
+                <Pressable
+                  onPress={onPressView} hitSlop={10}
+                  style={{
+                    width: 32, height: 32, borderRadius: 10,
+                    backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center',
+                  }}
+                >
+                  <Feather name="arrow-up-right" size={16} color={ACCENT_FG} />
+                </Pressable>
+              </View>
+
+              {/* Title row */}
+              <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: cardW * 0.045 }}>
+                <View style={{ flex: 1, paddingRight: 10 }}>
+                  <Text style={{
+                    color: TEXT, fontSize: titleSize, fontWeight: '800',
+                    letterSpacing: -0.5, lineHeight: titleSize * 1.18,
+                    textShadowColor: 'rgba(0,0,0,0.7)',
+                    textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 8,
+                  }}>
+                    {mod.label}
+                  </Text>
+                  <Text style={{ color: TEXT_SUB, fontSize: 12 * scale, marginTop: 5, fontWeight: '400' }}>
+                    {mod.sublabel}
+                  </Text>
+                </View>
+
+                {/* Glassy icon circle — size proportional to card width */}
+                <View style={{
+                  width: circleSize, height: circleSize, borderRadius: circleSize / 2,
+                  backgroundColor: 'rgba(255,255,255,0.08)',
+                  borderWidth: 1.5, borderColor: ICON_STROKE,
+                  alignItems: 'center', justifyContent: 'center',
+                  shadowColor: ACCENT, shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.35, shadowRadius: 10, elevation: 6,
+                }}>
+                  <Feather name={mod.icon} size={iconSize} color={ACCENT} />
+                </View>
+              </View>
             </View>
 
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <View style={{
-                borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5,
-                backgroundColor: mod.accentDim,
-                borderWidth: 1, borderColor: mod.accentBorder,
-              }}>
-                <Text style={{ color: mod.accent, fontSize: 11, fontWeight: '700', letterSpacing: 0.4 }}>
-                  {mod.tag}
-                </Text>
+            {/* Glassy bottom dock */}
+            <View style={{
+              margin: 10, borderRadius: 18,
+              backgroundColor: 'rgba(26,26,26,0.85)',
+              borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+              padding: 12,
+              flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+            }}>
+              {/* Level badge + avatars */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 }}>
+                <View style={{
+                  backgroundColor: 'rgba(170,255,0,0.12)',
+                  borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4,
+                  borderWidth: 1, borderColor: 'rgba(170,255,0,0.30)',
+                  flexDirection: 'row', alignItems: 'center', gap: 5,
+                }}>
+                  <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: ACCENT }} />
+                  <Text style={{ color: ACCENT, fontSize: 10 * scale, fontWeight: '600' }}>{mod.level}</Text>
+                </View>
+
+                <View style={{ flexDirection: 'row' }}>
+                  {[SURFACE_EL, '#2A2A2A', '#333333'].map((c, i) => (
+                    <View key={i} style={{
+                      width: 24, height: 24, borderRadius: 12,
+                      backgroundColor: c, borderWidth: 1.5, borderColor: ICON_STROKE,
+                      marginLeft: i === 0 ? 0 : -8,
+                      alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <Feather name="user" size={10} color={ICON_STROKE} />
+                    </View>
+                  ))}
+                  <View style={{
+                    width: 24, height: 24, borderRadius: 12,
+                    backgroundColor: 'rgba(170,255,0,0.15)',
+                    borderWidth: 1.5, borderColor: 'rgba(170,255,0,0.35)',
+                    marginLeft: -8, alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <Text style={{ color: ACCENT, fontSize: 8, fontWeight: '800' }}>{mod.stat}</Text>
+                  </View>
+                </View>
               </View>
-              {/* Arrow → navigates to view page */}
+
+              {/* Add CTA */}
               <Pressable
-                onPress={onPressView}
-                hitSlop={8}
-                style={{
-                  width: 34, height: 34, borderRadius: 17,
-                  backgroundColor: mod.accentDim,
-                  borderWidth: 1, borderColor: mod.accentBorder,
-                  alignItems: 'center', justifyContent: 'center',
-                }}
+                onPress={onPressAdd} hitSlop={8}
+                style={({ pressed }) => ({
+                  flexDirection: 'row', alignItems: 'center', gap: 6,
+                  backgroundColor: pressed ? ACCENT_DARK : ACCENT,
+                  borderRadius: 50, paddingHorizontal: 14, paddingVertical: 9,
+                  shadowColor: ACCENT, shadowOffset: { width: 0, height: 3 },
+                  shadowOpacity: pressed ? 0 : 0.40, shadowRadius: 8, elevation: pressed ? 0 : 5,
+                })}
               >
-                <Feather name="arrow-up-right" size={17} color={mod.accent} />
+                {({ pressed }) => (
+                  <>
+                    <Feather name="plus" size={13} color={ACCENT_FG} />
+                    <Text style={{ color: ACCENT_FG, fontSize: 12 * scale, fontWeight: '700' }}>Add new</Text>
+                  </>
+                )}
               </Pressable>
             </View>
+
           </View>
-
-          {/* Title + sublabel */}
-          <Text style={{ color: T.text, fontSize: 19, fontWeight: '800', letterSpacing: -0.4 }}>
-            {mod.label}
-          </Text>
-          <Text style={{ color: T.textSub, fontSize: 13, marginTop: 3, marginBottom: 10 }}>
-            {mod.sublabel}
-          </Text>
-
-          {/* Description */}
-          <Text style={{ color: T.textFaint, fontSize: 13, lineHeight: 19, marginBottom: 18 }}>
-            {mod.description}
-          </Text>
-
-          {/* Divider */}
-          <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.07)', marginBottom: 16 }} />
-
-          {/* Stats + CTA row */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <View>
-              <Text style={{ color: mod.accent, fontSize: 22, fontWeight: '800', letterSpacing: -0.5 }}>
-                {mod.stat}
-              </Text>
-              <Text style={{ color: T.textSub, fontSize: 11, marginTop: 2 }}>{mod.statLabel}</Text>
-            </View>
-
-            {/* Add new → navigates to add page */}
-            <Pressable
-              onPress={onPressAdd}
-              hitSlop={8}
-              style={({ pressed }) => ({
-                flexDirection: 'row', alignItems: 'center', gap: 8,
-                backgroundColor: pressed ? mod.accent : mod.accentDim,
-                borderWidth: 1, borderColor: mod.accentBorder,
-                borderRadius: 999, paddingHorizontal: 16, paddingVertical: 9,
-              })}
-            >
-              {({ pressed }) => (
-                <>
-                  <Feather name="plus" size={15} color={pressed ? T.onBrand : mod.accent} />
-                  <Text style={{ color: pressed ? T.onBrand : mod.accent, fontSize: 13, fontWeight: '700' }}>
-                    Add new
-                  </Text>
-                </>
-              )}
-            </Pressable>
-          </View>
-        </View>
+        </ImageBackground>
       </Pressable>
     </Animated.View>
   );
@@ -232,163 +247,217 @@ interface AdminModuleDevelopmentDashboardProps {
   onBack?: () => void;
 }
 
-export default function AdminModuleDevelopmentDashboard({
-  onNavigate,
-  onBack,
-}: AdminModuleDevelopmentDashboardProps) {
-  const [activePage, setActivePage] = useState<string | null>(null);
+export default function AdminModuleDevelopmentDashboard({ onNavigate, onBack }: AdminModuleDevelopmentDashboardProps) {
+  const [activePage,   setActivePage]   = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState('All');
 
-  // ── Sub-page routing ──────────────────────────────────────────
-  if (activePage === 'trainer') {
-    return <AddTrainerPage onBack={() => setActivePage(null)} />;
-  }
-  if (activePage === 'branch') {
-    return <AddBranchPage onBack={() => setActivePage(null)} />;
-  }
-  if (activePage === 'view-branches') {
-    return (
-      <ViewBranchesPage
-        onBack={() => setActivePage(null)}
-        onAddBranch={() => setActivePage('branch')}
-      />
-    );
-  }
+  const { hPad, cols, cardW, cardGap, scale, isTablet, isDesktop } = useLayout();
+
+  // ── Sub-page routing ─────────────────────────────────────────
+  if (activePage === 'trainer')       return <AddTrainerPage   onBack={() => setActivePage(null)} />;
+  if (activePage === 'view-trainers') return <ViewTrainersPage onBack={() => setActivePage(null)} onAddTrainer={() => setActivePage('trainer')} />;
+  if (activePage === 'branch')        return <AddBranchPage    onBack={() => setActivePage(null)} />;
+  if (activePage === 'view-branches') return <ViewBranchesPage onBack={() => setActivePage(null)} onAddBranch={() => setActivePage('branch')} />;
+  if (activePage === 'tenant')        return <AddTenantPage    onBack={() => setActivePage(null)} />;
+  if (activePage === 'view-tenants')  return <ViewTenantsPage  onBack={() => setActivePage(null)} onAddTenant={() => setActivePage('tenant')} />;
 
   const handleNavigate = (key: string) => {
-    // add pages
-    if (key === 'trainer') { setActivePage('trainer'); return; }
-    if (key === 'branch')  { setActivePage('branch');  return; }
-    // view pages — map module key → view route
+    if (key === 'trainer')       { setActivePage('trainer');       return; }
+    if (key === 'branch')        { setActivePage('branch');        return; }
+    if (key === 'tenant')        { setActivePage('tenant');        return; }
     if (key === 'view-branchs')  { setActivePage('view-branches'); return; }
     if (key === 'view-trainers') { setActivePage('view-trainers'); return; }
-    // fallback
+    if (key === 'view-tenants')  { setActivePage('view-tenants');  return; }
     onNavigate?.(key);
   };
+
+  const visibleModules = activeFilter === 'All'
+    ? MODULES
+    : MODULES.filter((m) => m.category === activeFilter);
+
+  // Group modules into rows of `cols` for the grid
+  const rows: ModuleItem[][] = [];
+  for (let i = 0; i < visibleModules.length; i += cols) {
+    rows.push(visibleModules.slice(i, i + cols));
+  }
+
+  // Responsive font sizes
+  const heroSize    = isDesktop ? 36 : isTablet ? 32 : 28;
+  const sectionSize = isDesktop ? 20 : isTablet ? 19 : 18;
+  const bodySize    = isDesktop ? 15 : 14;
+  const btnSize     = 36; // icon button size (spec: 36×36)
+
   return (
     <View style={{
-      flex: 1,
-      backgroundColor: T.bg,
+      flex: 1, backgroundColor: BG,
       paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 0,
     }}>
-      <StatusBar barStyle="light-content" backgroundColor={T.bg} />
+      <StatusBar barStyle="light-content" backgroundColor={BG} />
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 48 }}
-      >
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60 }}>
+
         {/* ── Hero header ── */}
-        <View style={{
-          paddingHorizontal: 20,
-          paddingTop: 20,
-          paddingBottom: 28,
-        }}>
-          {/* Back + title row */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 24 }}>
-            {onBack && (
+        <View style={{ paddingHorizontal: hPad, paddingTop: 22 }}>
+
+          {/* Top bar: back + bell */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: isTablet ? 32 : 24 }}>
+            {onBack ? (
               <Pressable
-                onPress={onBack}
-                hitSlop={12}
+                onPress={onBack} hitSlop={12}
                 style={{
-                  width: 42, height: 42, borderRadius: 21,
-                  backgroundColor: 'rgba(255,255,255,0.07)',
-                  borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
+                  width: btnSize, height: btnSize, borderRadius: btnSize / 2,
+                  backgroundColor: SURFACE, borderWidth: 1, borderColor: '#333333',
                   alignItems: 'center', justifyContent: 'center',
-                  marginRight: 14,
                 }}
               >
-                <Feather name="arrow-left" size={20} color={T.text} />
+                <Feather name="arrow-left" size={18} color={TEXT} />
               </Pressable>
-            )}
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: T.textSub, fontSize: 11, fontWeight: '600', letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 3 }}>
-                Admin
-              </Text>
-              <Text style={{ color: T.text, fontSize: 26, fontWeight: '800', letterSpacing: -0.5 }}>
-                Module Hub
-              </Text>
-            </View>
-            {/* Green dot status */}
-            <View style={{ alignItems: 'center' }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: T.brand }} />
-                <Text style={{ color: T.brand, fontSize: 12, fontWeight: '700' }}>Live</Text>
-              </View>
+            ) : <View style={{ width: btnSize }} />}
+
+            <View style={{
+              width: btnSize, height: btnSize, borderRadius: btnSize / 2,
+              backgroundColor: SURFACE, borderWidth: 1, borderColor: '#333333',
+              alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Feather name="bell" size={17} color={ICON_STROKE} />
             </View>
           </View>
 
-          {/* Hero description */}
+          {/* Hero title — fluid size */}
           <Text style={{
-            color: T.textSub, fontSize: 14, lineHeight: 21, marginBottom: 24,
+            color: TEXT, fontSize: heroSize, fontWeight: '800',
+            letterSpacing: -0.5, lineHeight: heroSize * 1.22,
+            marginBottom: 10,
           }}>
-            Manage your gym ecosystem — add branches, onboard trainers,
-            register tenants and enrol clients from one place.
+            Manage{'\n'}Your Gym{' '}
+            <Text style={{ color: ACCENT }}>Hub</Text>
           </Text>
 
-          {/* Summary strip */}
-          <StatsStrip items={SUMMARY_ITEMS} />
-        </View>
-
-        {/* ── Section label ── */}
-        <View style={{
-          flexDirection: 'row', alignItems: 'center',
-          paddingHorizontal: 20, marginBottom: 16,
-        }}>
-          <View style={{ flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.07)' }} />
-          <Text style={{ color: T.textFaint, fontSize: 11, fontWeight: '600', letterSpacing: 1, textTransform: 'uppercase', paddingHorizontal: 12 }}>
-            Quick add
+          <Text style={{ color: TEXT_SUB, fontSize: bodySize, lineHeight: bodySize * 1.6, marginBottom: isTablet ? 32 : 24 }}>
+            Add branches, onboard trainers, register tenants and enrol clients from one place.
           </Text>
-          <View style={{ flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.07)' }} />
         </View>
 
-        {/* ── Full-width card list ── */}
-        <View style={{ paddingHorizontal: 20 }}>
-          {MODULES.map((mod) => (
-            <ModuleCard
-              key={mod.key}
-              mod={mod}
-              onPressAdd={() => handleNavigate(mod.key)}
-              onPressView={() => handleNavigate(`view-${mod.key}s`)}
-            />
-          ))}
-        </View>
+        {/* ── Category tabs ── */}
+        <ScrollView
+          horizontal showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: hPad, gap: 8, paddingBottom: 4 }}
+          style={{ marginBottom: isTablet ? 28 : 20 }}
+        >
+          {CATEGORIES.map((cat) => {
+            const active = cat === activeFilter;
+            return (
+              <Pressable
+                key={cat}
+                onPress={() => setActiveFilter(cat)}
+                style={{
+                  paddingHorizontal: isTablet ? 20 : 16,
+                  paddingVertical: isTablet ? 11 : 9,
+                  borderRadius: 999,
+                  backgroundColor: active ? ACCENT : SURFACE,
+                  borderWidth: 1,
+                  borderColor: active ? ACCENT : '#333333',
+                  shadowColor: active ? ACCENT : 'transparent',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: active ? 0.40 : 0,
+                  shadowRadius: 10, elevation: active ? 6 : 0,
+                }}
+              >
+                <Text style={{
+                  color: active ? ACCENT_FG : TEXT_SUB,
+                  fontSize: 13 * scale, fontWeight: '700',
+                }}>
+                  {cat}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
 
-        {/* ── Recent activity section ── */}
-        <View style={{ paddingHorizontal: 20, marginTop: 32 }}>
-          <Text style={{ color: T.text, fontSize: 17, fontWeight: '700', marginBottom: 14 }}>
-            Recent activity
-          </Text>
-
-          {[
-            { icon: 'map-pin' as FeatherIconName,   accent: '#AAFF00', title: 'Downtown branch added',    sub: 'Mumbai · 2h ago' },
-            { icon: 'award' as FeatherIconName,      accent: '#22D3EE', title: 'Ravi K. onboarded',       sub: 'Trainer · Westside · 5h ago' },
-            { icon: 'user-plus' as FeatherIconName,  accent: '#FACC15', title: '23 new members enrolled', sub: 'Today · all branches' },
-          ].map((item, i) => (
+        {/* ── Module grid: 1-col on phone, 2-col on tablet+ ── */}
+        <View style={{ paddingHorizontal: hPad }}>
+          {rows.map((row, ri) => (
             <View
-              key={i}
+              key={ri}
               style={{
-                flexDirection: 'row', alignItems: 'center',
-                backgroundColor: 'rgba(255,255,255,0.04)',
-                borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
-                borderRadius: 16, padding: 14, marginBottom: 10,
+                flexDirection: 'row',
+                gap: cardGap,
+                marginBottom: 16,
               }}
             >
-              <View style={{
-                width: 38, height: 38, borderRadius: 12,
-                backgroundColor: item.accent + '18',
-                borderWidth: 1, borderColor: item.accent + '30',
-                alignItems: 'center', justifyContent: 'center',
-                marginRight: 12,
-              }}>
-                <Feather name={item.icon} size={17} color={item.accent} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: T.text, fontSize: 14, fontWeight: '600' }}>{item.title}</Text>
-                <Text style={{ color: T.textSub, fontSize: 11, marginTop: 2 }}>{item.sub}</Text>
-              </View>
-              <Feather name="chevron-right" size={16} color={T.textFaint} />
+              {row.map((mod) => (
+                <ModuleCard
+                  key={mod.key}
+                  mod={mod}
+                  cardW={cardW}
+                  scale={scale}
+                  onPressAdd={() => handleNavigate(mod.key)}
+                  onPressView={() => handleNavigate(`view-${mod.key}s`)}
+                />
+              ))}
+              {/* Fill empty last cell on odd-count filtered results */}
+              {cols === 2 && row.length === 1 && (
+                <View style={{ width: cardW }} />
+              )}
             </View>
           ))}
         </View>
+
+        {/* ── Recent activity ── */}
+        <View style={{ paddingHorizontal: hPad, marginTop: 8 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <Text style={{ color: TEXT, fontSize: sectionSize, fontWeight: '700', letterSpacing: -0.3 }}>
+              Recent Activity
+            </Text>
+            <Text style={{ color: ACCENT, fontSize: 12 * scale, fontWeight: '600' }}>See all</Text>
+          </View>
+
+          {/* On tablet/desktop, lay activity rows side-by-side in a 2-col wrap */}
+          <View style={{
+            flexDirection: isTablet ? 'row' : 'column',
+            flexWrap: isTablet ? 'wrap' : 'nowrap',
+            gap: 10,
+          }}>
+            {ACTIVITY.map((item, i) => (
+              <Pressable
+                key={i}
+                style={({ pressed }) => ({
+                  flexDirection: 'row', alignItems: 'center',
+                  backgroundColor: pressed ? SURFACE_EL : SURFACE,
+                  borderRadius: 18, padding: 14,
+                  borderWidth: 1, borderColor: pressed ? 'rgba(170,255,0,0.20)' : '#222222',
+                  // On tablet: each row takes ~half width minus gap
+                  ...(isTablet && { flex: 1, minWidth: '45%' }),
+                })}
+              >
+                <View style={{
+                  width: 42, height: 42, borderRadius: 13,
+                  backgroundColor: 'rgba(170,255,0,0.10)',
+                  borderWidth: 1, borderColor: 'rgba(170,255,0,0.25)',
+                  alignItems: 'center', justifyContent: 'center',
+                  marginRight: 12,
+                }}>
+                  <Feather name={item.icon} size={17} color={ACCENT} />
+                </View>
+
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: TEXT, fontSize: 13 * scale, fontWeight: '600' }}>{item.title}</Text>
+                  <Text style={{ color: TEXT_SUB, fontSize: 11 * scale, marginTop: 3 }}>{item.sub}</Text>
+                </View>
+
+                <View style={{
+                  width: 28, height: 28, borderRadius: 14,
+                  backgroundColor: '#2A2A2A',
+                  borderWidth: 1, borderColor: '#333333',
+                  alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Feather name="chevron-right" size={13} color={ICON_STROKE} />
+                </View>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+
       </ScrollView>
     </View>
   );

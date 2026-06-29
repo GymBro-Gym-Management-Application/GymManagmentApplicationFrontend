@@ -18,12 +18,12 @@ function formatCurrency(value: number): string {
 
 // Shared glass card style
 const glass = {
-  backgroundColor: 'rgba(255,255,255,0.05)',
+  backgroundColor: 'rgba(34,197,94,0.07)',
   borderWidth: 1,
-  borderColor: 'rgba(255,255,255,0.10)',
-  shadowColor: '#000',
+  borderColor: 'rgba(34,197,94,0.18)',
+  shadowColor: '#22c55e',
   shadowOffset: { width: 0, height: 8 },
-  shadowOpacity: 0.40,
+  shadowOpacity: 0.20,
   shadowRadius: 20,
   elevation: 10,
 };
@@ -44,8 +44,8 @@ export default function RevenueOverviewCard({
           Total Revenue
         </Text>
         <View style={{
-          backgroundColor: 'rgba(255,255,255,0.08)',
-          borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
+          backgroundColor: 'rgba(34,197,94,0.10)',
+          borderWidth: 1, borderColor: 'rgba(34,197,94,0.22)',
           borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4,
         }}>
           <Text style={{ color: T.textSub, fontSize: 11, fontWeight: '600' }}>{periodLabel}</Text>
