@@ -6,4 +6,19 @@ const axiosInstance = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+// Attach the JWT token to every request if one is stored
+axiosInstance.interceptors.request.use((config) => {
+  if (authToken) {
+    config.headers.Authorization = `Bearer ${authToken}`;
+  }
+  return config;
+});
+
+// In-memory token store — set this after a successful login
+let authToken: string | null = null;
+
+export function setAuthToken(token: string | null) {
+  authToken = token;
+}
+
 export default axiosInstance;

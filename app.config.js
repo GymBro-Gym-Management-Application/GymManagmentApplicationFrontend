@@ -1,4 +1,4 @@
-import 'dotenv/config';
+// dotenv no longer needed — API URL is hardcoded in src/config.ts
 
 export default {
   expo: {
@@ -29,7 +29,6 @@ export default {
       favicon: './assets/favicon.png',
     },
     extra: {
-      apiBaseUrl: process.env.API_BASE_URL,
       eas: {
         projectId: 'f7e74454-196f-4be9-b52c-04e3a45610ad',
       },
