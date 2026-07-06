@@ -124,7 +124,7 @@ function InputField({
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-export default function LoginPage({ onLoginSuccess }: { onLoginSuccess: () => void }) {
+export default function LoginPage({ onLoginSuccess }: { onLoginSuccess: (role: string, userId: number) => void }) {
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
@@ -169,7 +169,7 @@ export default function LoginPage({ onLoginSuccess }: { onLoginSuccess: () => vo
       {
         onSuccess: (res) => {
           if (res.success) {
-            onLoginSuccess();
+            onLoginSuccess(res.data?.role ?? 'client', res.data?.userId ?? 0);
           } else {
             // Route each error string to the right field by keyword matching
             const errs = res.errors ?? [];

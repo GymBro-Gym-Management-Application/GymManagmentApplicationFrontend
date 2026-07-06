@@ -265,9 +265,11 @@ export default function AdminModuleDevelopmentDashboard({ onNavigate, onBack }: 
     if (key === 'trainer')       { setActivePage('trainer');       return; }
     if (key === 'branch')        { setActivePage('branch');        return; }
     if (key === 'tenant')        { setActivePage('tenant');        return; }
+    if (key === 'client')        { onNavigate?.('members');        return; }
     if (key === 'view-branchs')  { setActivePage('view-branches'); return; }
     if (key === 'view-trainers') { setActivePage('view-trainers'); return; }
     if (key === 'view-tenants')  { setActivePage('view-tenants');  return; }
+    if (key === 'view-clients')  { onNavigate?.('members');        return; }
     onNavigate?.(key);
   };
 
