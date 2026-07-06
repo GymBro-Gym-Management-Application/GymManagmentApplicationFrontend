@@ -8,8 +8,8 @@ export const useLogin = () =>
     mutationFn: (payload: LoginPayload) => login(payload),
     onSuccess: (res) => {
       // Store the JWT so all subsequent requests include it
-      if (res.success && res.data) {
-        setAuthToken(res.data);
+      if (res.success && res.data?.accessToken) {
+        setAuthToken(res.data.accessToken);
       }
     },
   });
