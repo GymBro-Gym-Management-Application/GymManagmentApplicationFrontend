@@ -1,10 +1,48 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, Pressable, TextInput,
-  StatusBar, Platform, ActivityIndicator, Alert,
+  StatusBar, Platform, ActivityIndicator, Alert, Image, TouchableOpacity,
 } from 'react-native';
+
 import { Feather } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { useMyProfile, useMyTimeline, useUpdateProfile } from '../api/memberAppQueries';
+
+function AvatarPicker({ uri, initials, onPick }: { uri?: string | null; initials: string; onPick: (u: string) => void }) {
+  const pick = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission required', 'Please allow access to your photo library.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]?.uri) onPick(result.assets[0].uri);
+  };
+
+  return (
+    <TouchableOpacity onPress={pick} activeOpacity={0.8} style={{ alignItems: 'center', marginBottom: 12 }}>
+      {uri ? (
+        <Image
+          source={{ uri }}
+          style={{ width: 88, height: 88, borderRadius: 44, borderWidth: 2, borderColor: '#AAFF00' }}
+        />
+      ) : (
+        <View style={{ width: 88, height: 88, borderRadius: 44, backgroundColor: 'rgba(170,255,0,0.12)', borderWidth: 2, borderColor: '#AAFF00', alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ color: '#AAFF00', fontSize: 28, fontWeight: '900' }}>{initials}</Text>
+        </View>
+      )}
+      {/* camera badge */}
+      <View style={{ position: 'absolute', bottom: 0, right: 0, width: 26, height: 26, borderRadius: 13, backgroundColor: '#AAFF00', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#0D0D0D' }}>
+        <Feather name="camera" size={12} color="#000" />
+      </View>
+    </TouchableOpacity>
+  );
+}
 
 function Field({ label, value, onChange, placeholder, keyboardType, editable = true }: {
   label: string; value: string; onChange: (v: string) => void;
@@ -61,6 +99,7 @@ export default function ProfileScreen({ userId, onLogout }: Props) {
   const [firstName, setFirstName] = useState('');
   const [lastName,  setLastName]  = useState('');
   const [phone,     setPhone]     = useState('');
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [editing,   setEditing]   = useState(false);
   const [tab,       setTab]       = useState<'info' | 'timeline'>('info');
 
@@ -69,6 +108,7 @@ export default function ProfileScreen({ userId, onLogout }: Props) {
       setFirstName(profile.firstName);
       setLastName(profile.lastName);
       setPhone(profile.phone ?? '');
+      setAvatarUri(profile.avatarUrl ?? null);
     }
   }, [profile]);
 
@@ -98,9 +138,11 @@ export default function ProfileScreen({ userId, onLogout }: Props) {
 
         {/* ── Avatar / name header ── */}
         <View style={{ alignItems: 'center', paddingTop: 32, paddingBottom: 24, paddingHorizontal: 20 }}>
-          <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(170,255,0,0.12)', borderWidth: 2, borderColor: '#AAFF00', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-            <Text style={{ color: '#AAFF00', fontSize: 28, fontWeight: '900' }}>{initials}</Text>
-          </View>
+          <AvatarPicker
+            uri={avatarUri}
+            initials={initials}
+            onPick={(uri) => setAvatarUri(uri)}
+          />
           <Text style={{ color: '#FFFFFF', fontSize: 22, fontWeight: '800', letterSpacing: -0.4 }}>
             {profile?.firstName} {profile?.lastName}
           </Text>
